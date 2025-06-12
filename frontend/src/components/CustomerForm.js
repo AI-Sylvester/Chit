@@ -1,4 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import {
+  Box, TextField, Button, Checkbox,
+  FormControlLabel, Typography, Paper
+} from '@mui/material';
 import api from '../services/api';
 
 function CustomerForm() {
@@ -16,14 +20,14 @@ function CustomerForm() {
     mobile2: '',
     username: '',
     password: '',
-    active: true
+    active: true,
   });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setCustomer(prevState => ({
-      ...prevState,
-      [name]: type === 'checkbox' ? checked : value
+    setCustomer((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
@@ -32,7 +36,6 @@ function CustomerForm() {
     try {
       await api.post('/customers', customer);
       alert('Customer added successfully');
-      // Reset form if you want
       setCustomer({
         cusId: '',
         name: '',
@@ -47,7 +50,7 @@ function CustomerForm() {
         mobile2: '',
         username: '',
         password: '',
-        active: true
+        active: true,
       });
     } catch (error) {
       console.error(error);
@@ -56,157 +59,38 @@ function CustomerForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: 500, margin: 'auto' }}>
-      <h2>Add Customer</h2>
-
-      <label>
-        Customer ID:
-        <input
-          type="text"
-          name="cusId"
-          value={customer.cusId}
-          onChange={handleChange}
-          required
-        />
-      </label>
-
-      <label>
-        Name:
-        <input
-          type="text"
-          name="name"
-          value={customer.name}
-          onChange={handleChange}
-          required
-        />
-      </label>
-
-      <label>
-        Grade:
-        <input
-          type="text"
-          name="grade"
-          value={customer.grade}
-          onChange={handleChange}
-        />
-      </label>
-
-      <label>
-        Number:
-        <input
-          type="text"
-          name="number"
-          value={customer.number}
-          onChange={handleChange}
-        />
-      </label>
-
-      <label>
-        PID:
-        <input
-          type="text"
-          name="PID"
-          value={customer.PID}
-          onChange={handleChange}
-        />
-      </label>
-
-      <label>
-        Address Line 1:
-        <input
-          type="text"
-          name="addressLine1"
-          value={customer.addressLine1}
-          onChange={handleChange}
-        />
-      </label>
-
-      <label>
-        Address Line 2:
-        <input
-          type="text"
-          name="addressLine2"
-          value={customer.addressLine2}
-          onChange={handleChange}
-        />
-      </label>
-
-      <label>
-        City:
-        <input
-          type="text"
-          name="city"
-          value={customer.city}
-          onChange={handleChange}
-        />
-      </label>
-
-      <label>
-        State:
-        <input
-          type="text"
-          name="state"
-          value={customer.state}
-          onChange={handleChange}
-        />
-      </label>
-
-      <label>
-        Mobile 1:
-        <input
-          type="tel"
-          name="mobile1"
-          value={customer.mobile1}
-          onChange={handleChange}
-        />
-      </label>
-
-      <label>
-        Mobile 2:
-        <input
-          type="tel"
-          name="mobile2"
-          value={customer.mobile2}
-          onChange={handleChange}
-        />
-      </label>
-
-      <label>
-        Username:
-        <input
-          type="text"
-          name="username"
-          value={customer.username}
-          onChange={handleChange}
-          required
-        />
-      </label>
-
-      <label>
-        Password:
-        <input
-          type="password"
-          name="password"
-          value={customer.password}
-          onChange={handleChange}
-          required
-        />
-      </label>
-
-      <label>
-        Active:
-        <input
-          type="checkbox"
-          name="active"
-          checked={customer.active}
-          onChange={handleChange}
-        />
-      </label>
-
-      <button type="submit" style={{ marginTop: 10 }}>
-        Add Customer
-      </button>
-    </form>
+    <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Add Customer
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <TextField fullWidth margin="normal" label="Customer ID" name="cusId" value={customer.cusId} onChange={handleChange} required />
+          <TextField fullWidth margin="normal" label="Name" name="name" value={customer.name} onChange={handleChange} required />
+          <TextField fullWidth margin="normal" label="Grade" name="grade" value={customer.grade} onChange={handleChange} />
+          <TextField fullWidth margin="normal" label="Number" name="number" value={customer.number} onChange={handleChange} />
+          <TextField fullWidth margin="normal" label="PID" name="PID" value={customer.PID} onChange={handleChange} />
+          <TextField fullWidth margin="normal" label="Address Line 1" name="addressLine1" value={customer.addressLine1} onChange={handleChange} />
+          <TextField fullWidth margin="normal" label="Address Line 2" name="addressLine2" value={customer.addressLine2} onChange={handleChange} />
+          <TextField fullWidth margin="normal" label="City" name="city" value={customer.city} onChange={handleChange} />
+          <TextField fullWidth margin="normal" label="State" name="state" value={customer.state} onChange={handleChange} />
+          <TextField fullWidth margin="normal" label="Mobile 1" name="mobile1" value={customer.mobile1} onChange={handleChange} />
+          <TextField fullWidth margin="normal" label="Mobile 2" name="mobile2" value={customer.mobile2} onChange={handleChange} />
+          <TextField fullWidth margin="normal" label="Username" name="username" value={customer.username} onChange={handleChange} required />
+          <TextField fullWidth margin="normal" type="password" label="Password" name="password" value={customer.password} onChange={handleChange} required />
+          <FormControlLabel
+            control={
+              <Checkbox checked={customer.active} onChange={handleChange} name="active" />
+            }
+            label="Active"
+            sx={{ mt: 2 }}
+          />
+          <Button variant="contained" type="submit" sx={{ mt: 3 }}>
+            Add Customer
+          </Button>
+        </form>
+      </Paper>
+    </Box>
   );
 }
 

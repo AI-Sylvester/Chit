@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Box, TextField, Button, Typography, Paper, List, ListItem, ListItemText, Divider
+} from '@mui/material';
 import api from '../services/api';
 
 function ChitIdForm() {
@@ -30,26 +33,39 @@ function ChitIdForm() {
   }, []);
 
   return (
-    <div>
-      <h2>Add Chit ID</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={chitId}
-          onChange={(e) => setChitId(e.target.value)}
-          placeholder="Enter Chit ID"
-          required
-        />
-        <button type="submit">Add</button>
-      </form>
+    <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Add Chit ID
+        </Typography>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+          <TextField
+            fullWidth
+            label="Enter Chit ID"
+            value={chitId}
+            onChange={(e) => setChitId(e.target.value)}
+            required
+          />
+          <Button type="submit" variant="contained">
+            Add
+          </Button>
+        </form>
 
-      <h3>Existing Chit IDs</h3>
-      <ul>
-        {chitList.map((chit) => (
-          <li key={chit._id}>{chit.chitId}</li>
-        ))}
-      </ul>
-    </div>
+        <Typography variant="h6" gutterBottom>
+          Existing Chit IDs
+        </Typography>
+        <List dense>
+          {chitList.map((chit) => (
+            <React.Fragment key={chit._id}>
+              <ListItem>
+                <ListItemText primary={chit.chitId} />
+              </ListItem>
+              <Divider />
+            </React.Fragment>
+          ))}
+        </List>
+      </Paper>
+    </Box>
   );
 }
 

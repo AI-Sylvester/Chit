@@ -1,5 +1,5 @@
-const Transaction = require('../models/Transaction');
-const ChitClose = require('../models/ChitClose');
+const Transaction = require('../Models/Transaction');
+const ChitClose = require('../Models/ChitClose');
 
 exports.closeChit = async (req, res) => {
   const { cusId, chitId } = req.body;

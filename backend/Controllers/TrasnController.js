@@ -1,5 +1,5 @@
-const Transaction = require('../models/Transaction');
-const TodayRate = require('../models/TodayRate');
+const Transaction = require('../Models/Transaction');
+const TodayRate = require('../Models/TodayRate');
 
 exports.createTransaction = async (req, res) => {
   const todayRate = await TodayRate.findOne({ date: new Date() });

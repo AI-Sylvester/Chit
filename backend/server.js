@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
-const customerRoutes = require('./routes/cusroutes');
-const transactionRoutes = require('./routes/Transroutes');
-const chitCloseRoutes = require('./routes/Chitcloseroutes');
-
+const customerRoutes = require('./Routes/cusroutes');
+const transactionRoutes = require('./Routes/Transroutes');
+const chitCloseRoutes = require('./Routes/Chitcloseroutes');
+const chitIdRoutes = require('./Routes/chitidroute');
 dotenv.config();
 
 const app = express();
@@ -21,6 +21,6 @@ mongoose.connect(process.env.MONGO_URI )
 app.use('/api/customers', customerRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/chitclose', chitCloseRoutes);
-
+app.use('/api/chitids', chitIdRoutes);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

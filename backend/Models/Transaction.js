@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({
+  regId:String,
   EID: String,
   cusId: String,
   name: String,

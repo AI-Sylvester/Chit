@@ -13,6 +13,9 @@ const menuItems = [
   { label: 'Transaction Form', path: '/transaction' },
   { label: 'Chit Close Form', path: '/chitclose' },
   { label: 'Chit ID Form', path: '/chitids' },
+  { label: 'Today Rate Form', path: '/todayrate' },
+  { label: 'Chit Register Form', path: '/chitregister' }, 
+  {label: 'Register' , path:'/chitregisterlist'},
 ];
 
 function Layout({ children }) {

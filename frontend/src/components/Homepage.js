@@ -1,19 +1,64 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Tabs, Tab, Box, Paper, Typography } from '@mui/material';
+import CustomerForm from './CustomerForm';
+import TransactionForm from './TransactionForm';
+import TransactionTable from './TransactionView';
+import ChitIdForm from './ChitIdForm';
 
 function Homepage() {
-  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState(false);
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  const renderActiveComponent = () => {
+    switch (activeTab) {
+      case 'customer':
+        return <CustomerForm />;
+      case 'transaction':
+        return <TransactionForm />;
+      case 'transview':
+        return <TransactionTable />;
+      case 'chitids':
+        return <ChitIdForm />;
+      default:
+        return (
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="body1">Please select a form from the tabs above.</Typography>
+          </Box>
+        );
+    }
+  };
 
   return (
-    <div>
-      <h2>Welcome to Chit Management</h2>
-      <div style={{ display: 'flex', gap: '20px', marginTop: '30px', flexWrap: 'wrap' }}>
-        <button onClick={() => navigate('/customer')}>Customer Form</button>
-        <button onClick={() => navigate('/transaction')}>Transaction Form</button>
-        <button onClick={() => navigate('/chitclose')}>Chit Close Form</button>
-        <button onClick={() => navigate('/chitids')}>Chit ID Form</button> {/* ✅ New button */}
-      </div>
-    </div>
+    <Box sx={{ p: 4 }}>
+      <Typography variant="h4" gutterBottom color="primary">
+        Welcome to Chit Management
+      </Typography>
+
+      <Paper elevation={2} sx={{ borderRadius: 2 }}>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          textColor="primary"
+          indicatorColor="primary"
+          aria-label="form navigation"
+          sx={{ px: 2 }}
+        >
+          <Tab label="Customer Form" value="customer" />
+          <Tab label="Transaction Form" value="transaction" />
+          <Tab label="Transaction View" value="transview" />
+          <Tab label="Chit ID Form" value="chitids" />
+        </Tabs>
+      </Paper>
+
+      <Box sx={{ mt: 4 }}>
+        {renderActiveComponent()}
+      </Box>
+    </Box>
   );
 }
 

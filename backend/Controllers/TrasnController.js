@@ -10,7 +10,7 @@ exports.createTransaction = async (req, res) => {
   try {
     const today = new Date();
     const todayStr = formatDate(today); // e.g. "20250613"
-    const prefix = "ss";
+    const prefix = "SS";
 
     // Find last transaction for today to get last sequence number
     const lastTransaction = await Transaction.findOne({
@@ -68,8 +68,8 @@ exports.getNextEID = async (req, res) => {
     if (!date) return res.status(400).json({ message: 'Date is required' });
 
     const dateObj = new Date(date);
-    const dateStr = formatDate(dateObj); // "YYYYMMDD"
-    const prefix = "ss";
+    const dateStr = formatDate(dateObj); // "DDMMYYYY"
+    const prefix = "SS";
 
     const last = await Transaction.findOne({
       EID: { $regex: `^${prefix}${dateStr}` },
@@ -117,5 +117,14 @@ exports.settleTransactionsByRegId = async (req, res) => {
   } catch (err) {
     console.error('Error updating transactions:', err);
     res.status(500).json({ message: 'Failed to update transactions', error: err.message });
+  }
+};
+exports.getAllTransactions = async (req, res) => {
+  try {
+    const transactions = await Transaction.find({});
+    res.json(transactions);
+  } catch (err) {
+    console.error('Error fetching all transactions:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };

@@ -22,6 +22,8 @@ const chitRegisterSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
+  
+    maturityDate: Date, 
   closedOn: {
     type: Date,
   },
@@ -29,13 +31,19 @@ const chitRegisterSchema = new mongoose.Schema({
     type: String,
     enum: ['Open', 'Closed'],
     default: 'Open',
-  },
+  },payId: {
+  type: String,
+  unique: true,
+  sparse: true, // Allows null values if not yet closed
+},  payMode: { type: String },
+  refNo: { type: String },
   nomineeName: String,
   relation: String,
   nomineeNumber: String,
   nomineeCity: String,
 }, {
   timestamps: true,
-});
+}
+);
 
 module.exports = mongoose.model('ChitRegister', chitRegisterSchema);

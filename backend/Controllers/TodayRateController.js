@@ -48,3 +48,23 @@ exports.getTodayRateForDate = async (req, res) => {
     res.status(500).json({ message: 'Server error fetching rate' });
   }
 };
+exports.updateTodayRate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { todayRate } = req.body;
+
+    const updated = await TodayRate.findByIdAndUpdate(
+      id,
+      { todayRate: Number(todayRate) },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: 'Rate not found' });
+    }
+
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update today rate' });
+  }
+};

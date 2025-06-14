@@ -1,15 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box, TextField, Button, Typography, Paper, MenuItem,
-  FormControl, InputLabel, Select
+  Box, TextField, Button, Typography, Paper, MenuItem, AppBar,
+  Toolbar, Select, InputLabel, FormControl, Dialog,
+  DialogTitle, DialogContent, DialogActions, Divider
 } from '@mui/material';
+import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
 import api from '../services/api';
 
 function ChitRegisterForm() {
   const today = new Date().toISOString().split('T')[0];
 
-  const [formData, setFormData] = useState({
+  const calculateMaturityDate = (startDate) => {
+    const date = new Date(startDate);
+    date.setMonth(date.getMonth() + 12);
+    return date.toISOString().split('T')[0];
+  };
 
+  const formatDateToDDMMMYYYY = (dateStr) => {
+    if (!dateStr) return '';
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dateObj = new Date(dateStr);
+    const dd = String(dateObj.getDate()).padStart(2, '0');
+    const mmm = months[dateObj.getMonth()];
+    const yyyy = dateObj.getFullYear();
+    return `${dd}-${mmm}-${yyyy}`;
+  };
+
+  const [formData, setFormData] = useState({
     cusId: '',
     name: '',
     city: '',
@@ -17,6 +35,7 @@ function ChitRegisterForm() {
     PID: '',
     chitId: '',
     startedOn: today,
+    maturityDate: calculateMaturityDate(today),
     closedOn: '',
     status: 'Open',
     nomineeName: '',
@@ -27,6 +46,8 @@ function ChitRegisterForm() {
 
   const [customers, setCustomers] = useState([]);
   const [chitIds, setChitIds] = useState([]);
+  const [savedData, setSavedData] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -69,23 +90,31 @@ function ChitRegisterForm() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let updated = { ...formData, [name]: value };
 
-    setFormData((prev) => {
-      const updated = { ...prev, [name]: value };
-      if (name === 'cusId') {
-        fetchCustomerDetails(value);
-      }
-      return updated;
-    });
+    if (name === 'cusId') {
+      fetchCustomerDetails(value);
+    }
+    if (name === 'startedOn') {
+      updated.maturityDate = calculateMaturityDate(value);
+    }
+
+    setFormData(updated);
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const res = await api.post('/chitregisters', formData);
-    alert('Chit registered successfully');
+    e.preventDefault();
+    try {
+      const res = await api.post('/chitregisters', formData);
+      setSavedData(res.data);
+      setOpenDialog(true);
+    } catch (err) {
+      console.error('Failed to create chit register:', err);
+      alert('Error creating chit register');
+    }
+  };
 
-    // Reset form after successful submission
+  const handleClear = () => {
     setFormData({
       cusId: '',
       name: '',
@@ -93,39 +122,125 @@ function ChitRegisterForm() {
       number: '',
       PID: '',
       chitId: '',
-      startedOn: new Date().toISOString().split('T')[0],
+      startedOn: today,
+      maturityDate: calculateMaturityDate(today),
       closedOn: '',
       status: 'Open',
       nomineeName: '',
       relation: '',
       nomineeNumber: '',
       nomineeCity: '',
-      regId: res.data.regId, // If you still want to show the generated ID
     });
-  } catch (err) {
-    console.error('Failed to create chit register:', err);
-    alert('Error creating chit register');
-  }
-};
+  };
 
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSavedData(null);
+    handleClear();
+  };
+
+  const handlePrint = async () => {
+    if (!savedData) return;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [80, 150] });
+    const pageWidth = 80;
+    let y = 10;
+
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(13).setFont(undefined, 'bold');
+    pdf.text('Registration', pageWidth / 2, y, { align: 'center' });
+    y += 8;
+
+    pdf.setFontSize(8).setFont(undefined, 'normal');
+    const addLine = (label, val) => {
+      pdf.text(`${label}: ${val || ''}`, 4, y);
+      y += 6;
+    };
+
+    addLine('Register ID', savedData.regId);
+    addLine('Customer ID', savedData.cusId);
+    addLine('Name', savedData.name);
+    addLine('Mobile', savedData.number);
+    addLine('City', savedData.city);
+    addLine('PID', savedData.PID);
+    addLine('Chit ID', savedData.chitId);
+    addLine('Started On', formatDateToDDMMMYYYY(savedData.startedOn));
+    addLine('Maturity Date', formatDateToDDMMMYYYY(savedData.maturityDate));
+    if (savedData.status === 'Closed') {
+      addLine('Closed On', formatDateToDDMMMYYYY(savedData.closedOn));
+    }
+
+    pdf.text('Nominee Details', 4, y); y += 6;
+    addLine('Name', savedData.nomineeName);
+    addLine('Relation', savedData.relation);
+    addLine('Number', savedData.nomineeNumber);
+    addLine('City', savedData.nomineeCity);
+    y += 10;
+
+    try {
+      const qrUrl = `https://yourdomain.com/chitregister/${savedData.regId}`;
+      const qrDataUrl = await QRCode.toDataURL(qrUrl);
+      pdf.addImage(qrDataUrl, 'PNG', (pageWidth - 30) / 2, y, 30, 30);
+      y += 34;
+      pdf.setFontSize(6);
+      pdf.setFont(undefined, 'italic');
+      pdf.text('Scan QR to view registration details', pageWidth / 2, y, { align: 'center' });
+    } catch (err) {
+      console.error('QR generation failed:', err);
+    }
+
+    pdf.save(`Registration_${savedData.regId || 'unknown'}.pdf`);
+  };
 
   return (
-    <Box sx={{ maxWidth: 700, mx: 'auto', mt: 4 }}>
-      <Paper sx={{ p: 4 }} elevation={3}>
-        <Typography variant="h5" gutterBottom>
-          Register New Chit
-        </Typography>
-        <form onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Register ID"
-            name="regId"
-            value={formData.regId}
-            disabled
-          />
+   <Box sx={{ maxWidth: 900, mx: 'auto', mt: 4 }}>
+  {/* Always visible Chit ID selector */}
+  <AppBar
+    position="static"
+    sx={{
+      borderRadius: 1,
+      backgroundColor: 'gold',
+      color: 'black'
+    }}
+  >
+    <Toolbar>
+      <Typography variant="h6" sx={{ flexGrow: 1 }}>
+        Register New Chit
+      </Typography>
+      <FormControl size="small" sx={{ minWidth: 150 }}>
+        <InputLabel id="chitId-label">Chit ID</InputLabel>
+        <Select
+          labelId="chitId-label"
+          name="chitId"
+          value={formData.chitId}
+          label="Chit ID"
+          onChange={handleChange}
+          required
+        >
+          {chitIds.map((chit) => (
+            <MenuItem key={chit._id} value={chit.chitId}>
+              {chit.chitId}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </Toolbar>
+  </AppBar>
+{!formData.chitId && (
+  <Box mt={2} textAlign="center">
+    <Typography variant="subtitle1" color="error">
+      ⚠️ Please select a Chit ID to proceed.
+    </Typography>
+  </Box>
+)}
+  {/* Show form only if chitId is selected */}
+  {formData.chitId && (
+    <Paper elevation={3} sx={{ p: 4, mt: 3, borderRadius: 2 }}>
+      <form onSubmit={handleSubmit}>
+        <Typography variant="h6" gutterBottom color="primary">Customer Details</Typography>
+        <Divider sx={{ mb: 3 }} />
 
-          <FormControl fullWidth margin="normal">
+        <Box display="flex" gap={2} flexWrap="wrap">
+          <FormControl fullWidth sx={{ flex: 1, minWidth: 250 }} required>
             <InputLabel id="cusId-label">Customer ID</InputLabel>
             <Select
               labelId="cusId-label"
@@ -142,115 +257,71 @@ function ChitRegisterForm() {
               ))}
             </Select>
           </FormControl>
+          <TextField label="PID" value={formData.PID} fullWidth sx={{ flex: 1, minWidth: 250 }} disabled />
+        </Box>
 
-          <TextField fullWidth margin="normal" label="Name" name="name" value={formData.name} disabled />
-          <TextField fullWidth margin="normal" label="Mobile" name="number" value={formData.number} disabled />
-          <TextField fullWidth margin="normal" label="City" name="city" value={formData.city} disabled />
-          <TextField fullWidth margin="normal" label="PID" name="PID" value={formData.PID} disabled />
+        <Box display="flex" gap={2} flexWrap="wrap" mt={2}>
+          <TextField label="Name" value={formData.name} fullWidth sx={{ flex: 1, minWidth: 250 }} disabled />
+          <TextField label="Mobile" value={formData.number} fullWidth sx={{ flex: 1, minWidth: 250 }} disabled />
+        </Box>
 
-          <FormControl fullWidth margin="normal">
-            <InputLabel id="chitId-label">Chit ID</InputLabel>
-            <Select
-              labelId="chitId-label"
-              name="chitId"
-              value={formData.chitId}
-              label="Chit ID"
-              onChange={handleChange}
-              required
-            >
-              {chitIds.map((chit) => (
-                <MenuItem key={chit._id} value={chit.chitId}>
-                  {chit.chitId}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        <TextField label="City" value={formData.city} fullWidth sx={{ mt: 2 }} disabled />
 
+        <Box display="flex" gap={2} flexWrap="wrap" mt={2}>
           <TextField
-            fullWidth
-            margin="normal"
             type="date"
             label="Started On"
             name="startedOn"
             value={formData.startedOn}
-            onChange={handleChange}
             InputLabelProps={{ shrink: true }}
-            required
-          />
-
-   {formData.status === 'Closed' && (
-  <TextField
-    fullWidth
-    margin="normal"
-    type="date"
-    label="Closed On"
-    name="closedOn"
-    value={formData.closedOn}
-    onChange={handleChange}
-    InputLabelProps={{ shrink: true }}
-    required
-  />
-)}
-         <FormControl fullWidth margin="normal" disabled>
-  <InputLabel id="status-label">Status</InputLabel>
-  <Select
-    labelId="status-label"
-    name="status"
-    value={formData.status}
-    label="Status"
-    onChange={handleChange}
-    required
-  >
-    <MenuItem value="Open">Open</MenuItem>
-    <MenuItem value="Closed">Closed</MenuItem>
-  </Select>
-</FormControl>
-
-          <Typography variant="h6" sx={{ mt: 3 }}>
-            Nominee Details
-          </Typography>
-
-          <TextField
+            InputProps={{ readOnly: true }}
             fullWidth
-            margin="normal"
-            label="Nominee Name"
-            name="nomineeName"
-            value={formData.nomineeName}
-            onChange={handleChange}
+            sx={{ flex: 1, minWidth: 250 }}
           />
-
           <TextField
+            type="date"
+            label="Maturity Date"
+            name="maturityDate"
+            value={formData.maturityDate}
+            InputLabelProps={{ shrink: true }}
+            InputProps={{ readOnly: true }}
             fullWidth
-            margin="normal"
-            label="Relation"
-            name="relation"
-            value={formData.relation}
-            onChange={handleChange}
+            sx={{ flex: 1, minWidth: 250 }}
           />
+        </Box>
 
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Nominee Number"
-            name="nomineeNumber"
-            value={formData.nomineeNumber}
-            onChange={handleChange}
-          />
+        <Typography variant="h6" sx={{ mt: 4 }} color="primary">Nominee Details</Typography>
+        <Divider sx={{ mb: 2 }} />
 
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Nominee City"
-            name="nomineeCity"
-            value={formData.nomineeCity}
-            onChange={handleChange}
-          />
+        <Box display="flex" flexWrap="wrap" gap={2}>
+          <TextField required label="Nominee Name" name="nomineeName" value={formData.nomineeName} onChange={handleChange} fullWidth sx={{ flex: 1, minWidth: 250 }} />
+          <TextField required label="Relation" name="relation" value={formData.relation} onChange={handleChange} fullWidth sx={{ flex: 1, minWidth: 250 }} />
+          <TextField required label="Nominee Number" name="nomineeNumber" value={formData.nomineeNumber} onChange={handleChange} fullWidth sx={{ flex: 1, minWidth: 250 }} />
+          <TextField required label="Nominee City" name="nomineeCity" value={formData.nomineeCity} onChange={handleChange} fullWidth sx={{ flex: 1, minWidth: 250 }} />
+        </Box>
 
-          <Button type="submit" variant="contained" sx={{ mt: 3 }}>
-            Submit
-          </Button>
-        </form>
-      </Paper>
+        <Box display="flex" justifyContent="flex-end" gap={2} mt={4}>
+          <Button variant="outlined" onClick={handleClear}>Clear</Button>
+          <Button variant="contained" type="submit">Submit</Button>
+        </Box>
+      </form>
+    </Paper>
+  )}
+
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Registration Successful</DialogTitle>
+        <DialogContent dividers>
+          <Typography gutterBottom><strong>Register ID:</strong> {savedData?.regId}</Typography>
+          <Typography gutterBottom><strong>Name:</strong> {savedData?.name}</Typography>
+          <Typography gutterBottom><strong>Chit ID:</strong> {savedData?.chitId}</Typography>
+          <Typography gutterBottom><strong>Started:</strong> {formatDateToDDMMMYYYY(savedData?.startedOn)}</Typography>
+          <Typography gutterBottom><strong>Maturity:</strong> {formatDateToDDMMMYYYY(savedData?.maturityDate)}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Close</Button>
+          <Button onClick={handlePrint} variant="contained">Print</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

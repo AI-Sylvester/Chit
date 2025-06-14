@@ -8,6 +8,20 @@ function formatRegId(date, count) {
   return `${prefix}${dateStr}${sequence}`;
 }
 
+// ✅ Add this payId generator BEFORE it's used
+async function generatePayId() {
+  const lastChit = await ChitRegister.findOne({ payId: { $exists: true } })
+    .sort({ payId: -1 })
+    .lean()
+    .exec();
+
+  if (!lastChit || !lastChit.payId) return 'PY00001';
+
+  const lastNumber = parseInt(lastChit.payId.slice(2), 10);
+  const newNumber = lastNumber + 1;
+
+  return 'PY' + String(newNumber).padStart(5, '0');
+}
 exports.createChitRegister = async (req, res) => {
   try {
     const today = new Date();
@@ -78,6 +92,9 @@ exports.closeChitRegister = async (req, res) => {
   const { totalAmount, totalGrams, payMode, refNo, closedOn } = req.body;
 
   try {
+    // Generate next Pay ID
+    const payId = await generatePayId();
+
     const chit = await ChitRegister.findOneAndUpdate(
       { regId },
       {
@@ -87,6 +104,7 @@ exports.closeChitRegister = async (req, res) => {
         totalGrams,
         payMode,
         refNo,
+        payId,
       },
       { new: true }
     );
@@ -99,5 +117,34 @@ exports.closeChitRegister = async (req, res) => {
   } catch (err) {
     console.error('Error closing chit register:', err);
     res.status(500).json({ message: 'Internal server error', error: err.message });
+  }
+};
+
+exports.getOpenChitRegisters = async (req, res) => {
+  try {
+    const openChits = await ChitRegister.find({ status: 'Open' });
+    res.json(openChits);
+  } catch (err) {
+    console.error('Error fetching open chit registers:', err);
+    res.status(500).json({ message: 'Error fetching open chit registers', error: err.message });
+  }
+};
+exports.getByRegIdAllStatus = async (req, res) => {
+  try {
+    const regId = req.params.regId;
+
+    // Find chit registers matching regId with no status filter
+    const result = await ChitRegister.find({ regId });
+
+    if (!result.length) {
+      return res.status(404).json({ message: 'No chit register found for this RegID' });
+    }
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({
+      message: 'Error fetching chit register by RegID',
+      error: err.message || err,
+    });
   }
 };

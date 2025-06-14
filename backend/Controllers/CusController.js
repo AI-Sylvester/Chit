@@ -19,3 +19,21 @@ exports.getAllCustomers = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch customers' });
   }
 };
+exports.getNextCusId = async (req, res) => {
+  try {
+    const lastCustomer = await Customer.findOne().sort({ cusId: -1 }).select('cusId').lean();
+    const prefix = 'CS';
+
+    let nextCusId = 'CS00000001';
+    if (lastCustomer && lastCustomer.cusId) {
+      const lastNumber = parseInt(lastCustomer.cusId.slice(2), 10);
+      const nextNumber = lastNumber + 1;
+      nextCusId = prefix + nextNumber.toString().padStart(8, '0');
+    }
+
+    res.json({ nextCusId });
+  } catch (error) {
+    console.error('Error generating next customer ID:', error);
+    res.status(500).json({ error: 'Failed to generate customer ID' });
+  }
+};

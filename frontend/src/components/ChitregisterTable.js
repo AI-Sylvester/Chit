@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import api from '../services/api';
 
-function ChitRegisterView() {
+function ChitRegisterTable() {
   const [regIds, setRegIds] = useState([]);
   const [selectedRegId, setSelectedRegId] = useState('');
   const [chitDetails, setChitDetails] = useState(null);
@@ -87,7 +87,7 @@ function ChitRegisterView() {
       >
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Chit Register & Transaction
+            Chit Installments
           </Typography>
 
           <Box display="flex" gap={2} alignItems="center" flexWrap="wrap">
@@ -122,25 +122,30 @@ function ChitRegisterView() {
                 sx={{ p: 2, border: '1px solid #ddd', borderRadius: 2, backgroundColor: '#fafafa' }}
               >
                 {/* Left Box */}
-                <Box flex={1} minWidth={300}>
-                  <Typography variant="subtitle1" fontWeight="bold" mb={1} color="text.secondary">
-                    Chit Info
-                  </Typography>
-                  <DetailRow label="Name" value={chitDetails.name} />
-                  <DetailRow label="Chit ID" value={chitDetails.chitId} />
-                 <DetailRow label="Status" value={chitDetails.status} />
-<DetailRow label="Started On" value={formatDate(chitDetails.startedOn)} />
-{chitDetails.maturityDate && (
-  <DetailRow label="Maturity Date" value={formatDate(chitDetails.maturityDate)} />
-)}
-{chitDetails.closedOn && (
-  <>
-    <DetailRow label="Closed On" value={formatDate(chitDetails.closedOn)} />
-    <DetailRow label="Pay ID" value={chitDetails.payId} />
-    <DetailRow label="Pay Mode" value={chitDetails.payMode} />
-  </>
-)}
-                </Box>
+               <Box flex={1} minWidth={300}>
+  <Typography variant="subtitle1" fontWeight="bold" mb={1} color="text.secondary">
+    Chit Info
+  </Typography>
+  <DetailRow label="Name" value={chitDetails.name} />
+  <DetailRow label="Chit ID" value={chitDetails.chitId} />
+  <DetailRow label="Status" value={chitDetails.status} />
+  <DetailRow label="Started On" value={formatDate(chitDetails.startedOn)} />
+  <DetailRow label="Scheme" value={chitDetails.schemeName} />
+<DetailRow label="Period" value={`${chitDetails.period} months`} />
+<DetailRow label="Installment" value={`₹${chitDetails.installAmount?.toFixed(2)}`} />
+  {chitDetails.maturityDate && (
+    <DetailRow label="Maturity Date" value={formatDate(chitDetails.maturityDate)} />
+  )}
+  {chitDetails.closedOn && (
+    <>
+      <DetailRow label="Closed On" value={formatDate(chitDetails.closedOn)} />
+      <DetailRow label="Pay ID" value={chitDetails.payId} />
+      <DetailRow label="Pay Mode" value={chitDetails.payMode} />
+    </>
+  )}
+
+
+</Box>
 
                 {/* Right Box */}
                 <Box flex={1} minWidth={300}>
@@ -157,51 +162,94 @@ function ChitRegisterView() {
               <Divider sx={{ mt: 3 }} />
             </Box>
           )}
+{/* Installments */}
+<Box mt={3}>
+  <Typography variant="subtitle2" fontWeight="bold" mb={1} color="text.secondary">
+    Installments
+  </Typography>
 
-          <Typography variant="h6" mt={4}>Transactions</Typography>
-          <TableContainer component={Paper} sx={{ mt: 2 }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>EID</TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Amount (₹)</TableCell>
-                  <TableCell>Gold Gram</TableCell>
-                  <TableCell>Pay Mode</TableCell>
-                  <TableCell>Status</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {transactions.map(tx => (
-                  <TableRow key={tx._id}>
-                    <TableCell>{tx.EID}</TableCell>
-                    <TableCell>{new Date(tx.date).toLocaleDateString()}</TableCell>
-                    <TableCell>{tx.receivedAmount}</TableCell>
-                    <TableCell>{tx.goldGram}</TableCell>
-                    <TableCell>{tx.payMode}</TableCell>
-                    <TableCell>{tx.status}</TableCell>
-                  </TableRow>
-                ))}
-                {transactions.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">No transactions found.</TableCell>
-                  </TableRow>
-                )}
-                {transactions.length > 0 && (
-                  <TableRow sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>
-                    <TableCell colSpan={2}><strong>Total</strong></TableCell>
-                    <TableCell><strong>{totalAmount.toFixed(2)}</strong></TableCell>
-                    <TableCell><strong>{totalGrams.toFixed(2)}</strong></TableCell>
-                    <TableCell colSpan={2}></TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+  <TableContainer component={Paper} variant="outlined" sx={{ width: '100%', overflowX: 'auto' }}>
+    <Table size="small" sx={{ minWidth: 950 }}>
+      <TableHead>
+        <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+          <TableCell><strong>Month</strong></TableCell>
+          <TableCell><strong>Value</strong></TableCell>
+          <TableCell><strong>EID</strong></TableCell>
+          <TableCell><strong>Paid On</strong></TableCell>
+          <TableCell align="right"><strong>Amount (₹)</strong></TableCell>
+          <TableCell><strong>Pay Mode</strong></TableCell>
+          <TableCell align="right"><strong>Gold Gram</strong></TableCell>
+          <TableCell><strong>Status</strong></TableCell>
+        </TableRow>
+      </TableHead>
+
+  <TableBody>
+  {chitDetails &&
+    [...Array(12)].map((_, i) => {
+      const monthKey = `month${i + 1}`;
+      const paidForValue = chitDetails[monthKey];
+      if (!paidForValue) return null;
+
+      const tx = transactions.find(t => t.paidFor === paidForValue && t.regId === selectedRegId);
+
+      const eid = tx?.EID || '—';
+      const paidOn = tx?.date ? new Date(tx.date).toLocaleDateString('en-GB') : '—';
+      const amount = tx?.receivedAmount?.toFixed(2) || '—';
+      const payMode = tx?.payMode || '—';
+      const goldGram = tx?.goldGram?.toFixed(2) || '—';
+      const status = tx?.status || '—';
+
+      return (
+        <TableRow
+          key={monthKey}
+          sx={{ '&:hover': { backgroundColor: '#fafafa' } }}
+        >
+          <TableCell>{`Month ${i + 1}`}</TableCell>
+          <TableCell>{paidForValue}</TableCell>
+          <TableCell>{eid}</TableCell>
+          <TableCell>{paidOn}</TableCell>
+          <TableCell align="right">{amount}</TableCell>
+          <TableCell>{payMode}</TableCell>
+          <TableCell align="right">{goldGram}</TableCell>
+          <TableCell>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 500,
+                color:
+                  status === 'Received'
+                    ? 'green'
+                    : status === 'Settled'
+                    ? 'blue'
+                    : 'text.secondary',
+              }}
+            >
+              {status}
+            </Typography>
+          </TableCell>
+        </TableRow>
+      );
+    })}
+
+  {/* Totals Row */}
+  <TableRow sx={{ backgroundColor: '#f0f0f0' }}>
+    <TableCell colSpan={4}><strong>Total</strong></TableCell>
+    <TableCell align="right"><strong>{totalAmount.toFixed(2)}</strong></TableCell>
+    <TableCell />
+    <TableCell align="right"><strong>{totalGrams.toFixed(2)}</strong></TableCell>
+    <TableCell />
+  </TableRow>
+</TableBody>
+
+    </Table>
+  </TableContainer>
+</Box>
+    
+          
         </>
       )}
     </Box>
   );
 }
 
-export default ChitRegisterView;
+export default ChitRegisterTable;

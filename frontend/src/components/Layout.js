@@ -39,7 +39,8 @@ function Layout({ children }) {
       { label: 'Chit Close', path: '/chitregisterlist', icon: <LockIcon /> },
     ],
     Reports: [
-      { label: 'Chit Register Report', path: '/chitview', icon: <ListAltIcon /> },
+             { label: 'Chit Installments', path: '/chittable', icon: <ListAltIcon /> }, 
+             { label: 'Chit Register Report', path: '/chitview', icon: <ListAltIcon /> },
       { label: 'Transaction Report', path: '/transview', icon: <ListAltIcon /> },
     ],
   };

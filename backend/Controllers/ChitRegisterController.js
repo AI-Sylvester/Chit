@@ -7,7 +7,23 @@ function formatRegId(date, count) {
   const sequence = String(count).padStart(4, '0');
   return `${prefix}${dateStr}${sequence}`;
 }
+function generateInstallmentMonths(startDate, period) {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  let start = new Date(startDate);
+  let installments = {};
 
+  for (let i = 1; i <= 12; i++) {
+    if (i <= period) {
+      let monthStr = `${months[start.getMonth()]}-${start.getFullYear()}`;
+      installments[`month${i}`] = monthStr;
+      start.setMonth(start.getMonth() + 1);
+    } else {
+      installments[`month${i}`] = null;
+    }
+  }
+
+  return installments;
+}
 // ✅ Add this payId generator BEFORE it's used
 async function generatePayId() {
   const lastChit = await ChitRegister.findOne({ payId: { $exists: true } })
@@ -38,9 +54,15 @@ exports.createChitRegister = async (req, res) => {
 
     const regId = formatRegId(new Date(), countToday + 1);
 
+    // Generate monthly installments fields
+    const period = Number(req.body.period) || 12;
+    const startedOn = req.body.startedOn || today;
+    const monthlyInstallments = generateInstallmentMonths(startedOn, period);
+
     const chit = new ChitRegister({
       regId,
       ...req.body,
+      ...monthlyInstallments,  // Spread the generated month1..month12 fields here
     });
 
     await chit.save();
@@ -53,7 +75,6 @@ exports.createChitRegister = async (req, res) => {
     });
   }
 };
-
 exports.getAllChitRegisters = async (req, res) => {
   try {
     const data = await ChitRegister.find();

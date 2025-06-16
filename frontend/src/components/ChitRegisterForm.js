@@ -10,13 +10,12 @@ import api from '../services/api';
 
 function ChitRegisterForm() {
   const today = new Date().toISOString().split('T')[0];
-
-  const calculateMaturityDate = (startDate) => {
-    const date = new Date(startDate);
-    date.setMonth(date.getMonth() + 12);
-    return date.toISOString().split('T')[0];
-  };
-
+const calculateMaturityDate = (startDate, period) => {
+  if (!startDate || isNaN(new Date(startDate))) return '';
+  const date = new Date(startDate);
+  date.setMonth(date.getMonth() + Number(period || 0));
+  return date.toISOString().split('T')[0];
+};
   const formatDateToDDMMMYYYY = (dateStr) => {
     if (!dateStr) return '';
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -28,21 +27,25 @@ function ChitRegisterForm() {
   };
 
   const [formData, setFormData] = useState({
-    cusId: '',
-    name: '',
-    city: '',
-    number: '',
-    PID: '',
-    chitId: '',
-    startedOn: today,
-    maturityDate: calculateMaturityDate(today),
-    closedOn: '',
-    status: 'Open',
-    nomineeName: '',
-    relation: '',
-    nomineeNumber: '',
-    nomineeCity: '',
-  });
+  cusId: '',
+  name: '',
+  city: '',
+  number: '',
+  PID: '',
+  chitId: '',
+  schemeName: '',
+  period: '',
+  installAmount: '', // ✅ Added here
+  startedOn: today,
+  maturityDate: calculateMaturityDate(today, 12),
+  closedOn: '',
+  status: 'Open',
+  nomineeName: '',
+  relation: '',
+  nomineeNumber: '',
+  nomineeCity: '',
+});
+
 
   const [customers, setCustomers] = useState([]);
   const [chitIds, setChitIds] = useState([]);
@@ -88,20 +91,31 @@ function ChitRegisterForm() {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    let updated = { ...formData, [name]: value };
+ const handleChange = (e) => {
+  const { name, value } = e.target;
+  let updated = { ...formData, [name]: value };
 
-    if (name === 'cusId') {
-      fetchCustomerDetails(value);
+  if (name === 'cusId') {
+    fetchCustomerDetails(value);
+  }
+
+  if (name === 'startedOn') {
+    updated.maturityDate = calculateMaturityDate(value);
+  }
+
+  if (name === 'chitId') {
+    const selectedChit = chitIds.find((chit) => chit.chitId === value);
+    if (selectedChit) {
+      updated.schemeName = selectedChit.schemeName;
+      updated.period = selectedChit.period;
+        updated.maturityDate = calculateMaturityDate(formData.startedOn, selectedChit.period);
     }
-    if (name === 'startedOn') {
-      updated.maturityDate = calculateMaturityDate(value);
-    }
-
-    setFormData(updated);
-  };
-
+  }
+  if (name === 'startedOn') {
+    updated.maturityDate = calculateMaturityDate(value, formData.period || 12);
+  }
+  setFormData(updated);
+};
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -122,8 +136,10 @@ function ChitRegisterForm() {
       number: '',
       PID: '',
       chitId: '',
+        schemeName: '',
+  period: '',
       startedOn: today,
-      maturityDate: calculateMaturityDate(today),
+     maturityDate: calculateMaturityDate(today, 12),
       closedOn: '',
       status: 'Open',
       nomineeName: '',
@@ -163,6 +179,8 @@ function ChitRegisterForm() {
     addLine('City', savedData.city);
     addLine('PID', savedData.PID);
     addLine('Chit ID', savedData.chitId);
+    addLine('Scheme', savedData.schemeName);
+addLine('Period', `${savedData.period} months`);
     addLine('Started On', formatDateToDDMMMYYYY(savedData.startedOn));
     addLine('Maturity Date', formatDateToDDMMMYYYY(savedData.maturityDate));
     if (savedData.status === 'Closed') {
@@ -266,6 +284,32 @@ function ChitRegisterForm() {
         </Box>
 
         <TextField label="City" value={formData.city} fullWidth sx={{ mt: 2 }} disabled />
+<Box display="flex" gap={2} flexWrap="wrap" mt={2}>
+  <TextField
+  required
+  label="Installment Amount"
+  name="installAmount"
+  type="number"
+  value={formData.installAmount}
+  onChange={handleChange}
+  fullWidth
+  sx={{ mt: 2 }}
+/>
+  <TextField
+    label="Scheme Name"
+    value={formData.schemeName}
+    fullWidth
+    disabled
+    sx={{ flex: 1, minWidth: 250 }}
+  />
+  <TextField
+    label="Period (Months)"
+    value={formData.period}
+    fullWidth
+    disabled
+    sx={{ flex: 1, minWidth: 250 }}
+  />
+</Box>
 
         <Box display="flex" gap={2} flexWrap="wrap" mt={2}>
           <TextField

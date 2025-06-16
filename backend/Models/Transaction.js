@@ -14,7 +14,9 @@ const transactionSchema = new mongoose.Schema({
   receivedAmount: Number,
   goldGram: Number,
   payMode: String,
-  status: String
+  status: String,
+   paidFor: String, // 👈 Add this
+  
 });
-
+ transactionSchema.index({ regId: 1, paidFor: 1 }, { unique: true });
 module.exports = mongoose.model('Transaction', transactionSchema);

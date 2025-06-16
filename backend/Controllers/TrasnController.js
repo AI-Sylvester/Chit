@@ -9,28 +9,30 @@ function formatDate(date) {
 exports.createTransaction = async (req, res) => {
   try {
     const today = new Date();
-    const todayStr = formatDate(today); // e.g. "20250613"
+    const todayStr = formatDate(today); // e.g., "20250616"
     const prefix = "SS";
 
-    // Find last transaction for today to get last sequence number
+    // 🔍 Get last transaction to compute sequence
     const lastTransaction = await Transaction.findOne({
       EID: { $regex: `^${prefix}${todayStr}` }
-    }).sort({ EID: -1 }).exec();
+    }).sort({ EID: -1 });
 
     let seqNumber = 1;
-    if (lastTransaction) {
-      const lastEID = lastTransaction.EID; // e.g. "ss2025061300001"
-      const lastSeqStr = lastEID.slice(-5); // last 5 digits as string
+    if (lastTransaction?.EID) {
+      const lastSeqStr = lastTransaction.EID.slice(-5);
       seqNumber = parseInt(lastSeqStr, 10) + 1;
     }
-    const newSeqStr = seqNumber.toString().padStart(5, '0'); // "00001", "00002", etc.
-    const newEID = `${prefix}${todayStr}${newSeqStr}`;
 
-    // Fetch today rate (fallback to 0)
-    const todayRateDoc = await TodayRate.findOne({ date: today });
-    const todayAmount = todayRateDoc ? todayRateDoc.todayRate : 0;
+    const newEID = `${prefix}${todayStr}${String(seqNumber).padStart(5, '0')}`;
 
-    // Create new transaction with generated EID and todayAmount, and default status 'Received'
+    // 🟡 Get today's rate (use only date part to compare)
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+    const todayRateDoc = await TodayRate.findOne({ date: { $gte: startOfDay, $lte: endOfDay } });
+
+    const todayAmount = todayRateDoc?.todayRate || 0;
+
+    // 📦 Create and save transaction
     const newTransaction = new Transaction({
       ...req.body,
       EID: newEID,
@@ -41,7 +43,15 @@ exports.createTransaction = async (req, res) => {
     await newTransaction.save();
 
     return res.status(201).json(newTransaction);
+
   } catch (error) {
+    // ❗ Handle duplicate key (regId + paidFor)
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: 'A transaction already exists for this Registration ID and month.',
+      });
+    }
+
     console.error('Error creating transaction:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
@@ -125,6 +135,26 @@ exports.getAllTransactions = async (req, res) => {
     res.json(transactions);
   } catch (err) {
     console.error('Error fetching all transactions:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+exports.checkTransactionExists = async (req, res) => {
+  try {
+    const { regId, paidFor } = req.query;
+
+    if (!regId || !paidFor) {
+      return res.status(400).json({ message: 'regId and paidFor are required' });
+    }
+
+    const existing = await Transaction.findOne({ regId, paidFor });
+
+    if (existing) {
+      return res.json({ exists: true });
+    } else {
+      return res.json({ exists: false });
+    }
+  } catch (err) {
+    console.error('Error checking transaction existence:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };

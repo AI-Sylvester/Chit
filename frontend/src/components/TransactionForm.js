@@ -276,7 +276,7 @@ y += 5;
 
 
   return (
-    <Box sx={{ maxWidth: 1100, mx: 'auto', mt: 2, fontFamily: `'Segoe UI', 'Roboto', sans-serif` }}>
+    <Box sx={{ maxWidth: 1100, mx: 'auto', mt: 1, fontFamily: `'Segoe UI', 'Roboto', sans-serif` }}>
        {isFormDisabled && (
         <Alert severity="warning" sx={{ mb: 2 }}>
           Gold rate is not available for today. Please try again later.

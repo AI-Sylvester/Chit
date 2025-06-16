@@ -75,7 +75,7 @@ function ChitRegisterTable() {
   };
 
   return (
-    <Box sx={{ maxWidth: '95%', mx: 'auto', mt: 4 }}>
+    <Box sx={{ maxWidth: '95%', mx: 'auto', mt: 1 }}>
       <AppBar
         position="static"
         elevation={1}

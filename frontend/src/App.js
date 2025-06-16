@@ -12,6 +12,8 @@ import ChitRegisterList from './components/ChitRegisterList';
 import ChitRegisterView from './components/ChitView';
 import TransactionTable from './components/TransactionView';
 import ChitRegisterTable from './components/ChitregisterTable';
+import CustomerTable from './components/CustomerTable';
+
 function App() {
   return (
     <Router>
@@ -33,7 +35,8 @@ function App() {
                   <Route path="chitregisterlist" element={<ChitRegisterList />} /> 
                   <Route path="transview" element={<TransactionTable />} /> 
                    <Route path="chittable" element={<ChitRegisterTable />} /> 
-              </Routes>
+                   <Route path="custable" element={<CustomerTable />} /> 
+                                 </Routes>
             </Layout>
           }
         />

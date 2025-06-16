@@ -97,35 +97,52 @@ function TodayRateManager() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rates.map((rate, index) => (
-              <TableRow key={rate._id}>
-                <TableCell>{new Date(rate.date).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  {editingIndex === index ? (
-                    <TextField
-                      type="number"
-                      size="small"
-                      value={rate.todayRate}
-                      onChange={(e) => handleRateChange(index, e.target.value)}
-                    />
-                  ) : (
-                    `₹${rate.todayRate}`
-                  )}
-                </TableCell>
-                <TableCell align="center">
-                  {editingIndex === index ? (
-                    <IconButton onClick={() => handleSaveEdit(index)} color="success">
-                      <SaveIcon />
-                    </IconButton>
-                  ) : (
-                    <IconButton onClick={() => handleEdit(index)} color="primary">
-                      <EditIcon />
-                    </IconButton>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+  {rates.map((rate, index) => {
+    const isToday =
+      new Date(rate.date).toDateString() === new Date().toDateString();
+
+    return (
+      <TableRow
+        key={rate._id}
+        sx={{
+  backgroundColor: isToday ? '#FFE082' : 'inherit', // Amber 200
+  fontWeight: isToday ? 'bold' : 'normal'
+}}
+      >
+        <TableCell>
+  {new Date(rate.date).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  })}
+</TableCell>
+        <TableCell>
+          {editingIndex === index ? (
+            <TextField
+              type="number"
+              size="small"
+              value={rate.todayRate}
+              onChange={(e) => handleRateChange(index, e.target.value)}
+            />
+          ) : (
+            `₹${rate.todayRate}`
+          )}
+        </TableCell>
+        <TableCell align="center">
+          {editingIndex === index ? (
+            <IconButton onClick={() => handleSaveEdit(index)} color="success">
+              <SaveIcon />
+            </IconButton>
+          ) : (
+            <IconButton onClick={() => handleEdit(index)} color="primary">
+              <EditIcon />
+            </IconButton>
+          )}
+        </TableCell>
+      </TableRow>
+    );
+  })}
+</TableBody>
         </Table>
       </TableContainer>
 

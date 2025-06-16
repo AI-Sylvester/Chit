@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Tabs, Tab, Box, Paper, Typography } from '@mui/material';
-import CustomerForm from './CustomerForm';
-import TransactionForm from './TransactionForm';
 import TransactionTable from './TransactionView';
 import ChitIdForm from './ChitIdForm';
-
+import CustomerTable from './CustomerTable';
+import ChitRecord  from './ChitRecord';
 function Homepage() {
   const [activeTab, setActiveTab] = useState(false);
 
@@ -14,10 +13,10 @@ function Homepage() {
 
   const renderActiveComponent = () => {
     switch (activeTab) {
-      case 'customer':
-        return <CustomerForm />;
-      case 'transaction':
-        return <TransactionForm />;
+      case 'custable':
+        return <CustomerTable />;
+      case 'chitrecord':
+        return <ChitRecord />;
       case 'transview':
         return <TransactionTable />;
       case 'chitids':
@@ -25,7 +24,7 @@ function Homepage() {
       default:
         return (
           <Box sx={{ mt: 4 }}>
-            <Typography variant="body1">Please select a form from the tabs above.</Typography>
+            <Typography variant="body1">Please select the tabs above.</Typography>
           </Box>
         );
     }
@@ -48,10 +47,10 @@ function Homepage() {
           aria-label="form navigation"
           sx={{ px: 2 }}
         >
-          <Tab label="Customer Form" value="customer" />
-          <Tab label="Transaction Form" value="transaction" />
-          <Tab label="Transaction View" value="transview" />
-          <Tab label="Chit ID Form" value="chitids" />
+          <Tab label="Customer List" value="custable" />
+          <Tab label="Chit Register List" value="chitrecord" />
+          <Tab label="Transaction List" value="transview" />
+          <Tab label="Chit ID " value="chitids" />
         </Tabs>
       </Paper>
 

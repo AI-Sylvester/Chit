@@ -210,7 +210,7 @@ addLine('Period', `${savedData.period} months`);
   };
 
   return (
-   <Box sx={{ maxWidth: 900, mx: 'auto', mt: 4 }}>
+   <Box sx={{ maxWidth: 900, mx: 'auto', mt: 1 }}>
   {/* Always visible Chit ID selector */}
   <AppBar
     position="static"
@@ -222,7 +222,7 @@ addLine('Period', `${savedData.period} months`);
   >
     <Toolbar>
       <Typography variant="h6" sx={{ flexGrow: 1 }}>
-        Register New Chit
+        Chit Registration Form
       </Typography>
       <FormControl size="small" sx={{ minWidth: 150 }}>
         <InputLabel id="chitId-label">Chit ID</InputLabel>
@@ -363,7 +363,7 @@ addLine('Period', `${savedData.period} months`);
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Close</Button>
-          <Button onClick={handlePrint} variant="contained">Print</Button>
+          <Button onClick={handlePrint} variant="contained">Save</Button>
         </DialogActions>
       </Dialog>
     </Box>

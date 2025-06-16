@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   AppBar, Toolbar, IconButton, Typography, Drawer, List, ListItem,
-  ListItemText, ListItemIcon, Box, CssBaseline, Button, Stack, Divider, ListSubheader, useMediaQuery
+  ListItemText, ListItemIcon, Box, CssBaseline, Button, Stack, Divider,Tooltip, ListSubheader, useMediaQuery
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
@@ -10,22 +10,24 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import TodayIcon from '@mui/icons-material/Today';
-import FolderOpenIcon from '@mui/icons-material/FolderOpen';
-import LockIcon from '@mui/icons-material/Lock';
+import HowToRegIcon from '@mui/icons-material/HowToReg';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '@mui/material/styles';
+import { useTheme  } from '@mui/material/styles';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
+import DescriptionIcon from '@mui/icons-material/Description';
+
+const drawerWidth = 240;
+const appBarHeight = 64;
 
 function Layout({ children }) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+const [drawerOpen, setDrawerOpen] = useState(false); // default closed
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const toggleDrawer = () => setDrawerOpen(!drawerOpen);
-  const handleNavigate = (path) => {
-    navigate(path);
-    setDrawerOpen(false);
-  };
+
 
   const groupedMenu = {
     Master: [
@@ -34,14 +36,14 @@ function Layout({ children }) {
       { label: 'Today Rate Master', path: '/todayrate', icon: <TodayIcon /> },
     ],
     Transaction: [
+   { label: 'Chit Registrtaion', path: '/chitregister', icon: <HowToRegIcon /> },
       { label: 'Transaction', path: '/transaction', icon: <ReceiptIcon /> },
-      { label: 'Chit Register', path: '/chitregister', icon: <FolderOpenIcon /> },
-      { label: 'Chit Close', path: '/chitregisterlist', icon: <LockIcon /> },
+        { label: 'Chit Close', path: '/chitregisterlist', icon: <LogoutIcon /> },
     ],
     Reports: [
              { label: 'Chit Installments', path: '/chittable', icon: <ListAltIcon /> }, 
-             { label: 'Chit Register Report', path: '/chitview', icon: <ListAltIcon /> },
-      { label: 'Transaction Report', path: '/transview', icon: <ListAltIcon /> },
+             { label: 'Chit Register Report', path: '/chitview', icon: <PlaylistAddCheckIcon /> },
+      { label: 'Transaction Report', path: '/transview', icon: <DescriptionIcon /> },
     ],
   };
 
@@ -82,7 +84,7 @@ function Layout({ children }) {
                 color: 'black',
               }}
             >
-              Chit Management App
+              Chit Management 
             </Typography>
           </Box>
 
@@ -113,36 +115,92 @@ function Layout({ children }) {
       </AppBar>
 
       {/* Side Drawer */}
-      <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer}>
-        <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer}>
-          <List>
-            <ListItem button onClick={() => handleNavigate('/home')}>
-              <ListItemIcon><HomeIcon /></ListItemIcon>
-              <ListItemText primary="Home" />
-            </ListItem>
-          </List>
-          <Divider />
 
-          {Object.entries(groupedMenu).map(([section, items]) => (
-            <List
-              key={section}
-              subheader={
-                <ListSubheader component="div" sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>
-                  {section}
-                </ListSubheader>
-              }
-            >
-              {items.map(item => (
-                <ListItem button key={item.label} onClick={() => handleNavigate(item.path)}>
-                  <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText primary={item.label} />
-                </ListItem>
-              ))}
-              <Divider />
-            </List>
-          ))}
-        </Box>
-      </Drawer>
+
+<Drawer
+  variant="permanent"
+  open={drawerOpen}
+  sx={{
+    width: drawerOpen ? drawerWidth : 60,
+    flexShrink: 0,
+    whiteSpace: 'nowrap',
+    boxSizing: 'border-box',
+    '& .MuiDrawer-paper': {
+      width: drawerOpen ? drawerWidth : 60,
+      transition: theme.transitions.create('width', {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.enteringScreen,
+      }),
+      overflowX: 'hidden',
+      backgroundColor: '#000',
+      color: '#fff',
+      top: `${appBarHeight}px`,
+      height: `calc(100% - ${appBarHeight}px)`,
+    },
+  }}
+>
+   <Box sx={{ textAlign: 'center', py: 1 }}>
+    {drawerOpen && (
+      <Typography
+        variant="subtitle1"
+        sx={{
+          fontWeight: 'bold',
+          fontSize: '1rem',
+          color: '#f5f5f5',
+        }}
+      >
+        Chit Management
+      </Typography>
+    )}
+  </Box>
+
+  <Divider />
+
+  <List>
+    <Tooltip title={!drawerOpen ? 'Home' : ''} placement="right" arrow>
+      <ListItem button onClick={() => navigate('/home')}>
+        <ListItemIcon sx={{ color: '#fff' }}>
+          <HomeIcon />
+        </ListItemIcon>
+        {drawerOpen && (
+          <ListItemText
+            primary="Home"
+            sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }}
+          />
+        )}
+      </ListItem>
+    </Tooltip>
+  </List>
+
+  <Divider />
+
+  {Object.entries(groupedMenu).map(([section, items]) => (
+    <List
+      key={section}
+      subheader={
+        drawerOpen && (
+          <ListSubheader component="div" sx={{ background: '#1a1a1a', color: '#aaa' }}>
+            {section}
+          </ListSubheader>
+        )
+      }
+    >
+      {items.map(({ label, path, icon }) => (
+        <Tooltip title={!drawerOpen ? label : ''} placement="right" arrow key={label}>
+          <ListItem button onClick={() => navigate(path)}>
+            <ListItemIcon sx={{ color: '#fff' }}>{icon}</ListItemIcon>
+            {drawerOpen && (
+              <ListItemText
+                primary={label}
+                sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }}
+              />
+            )}
+          </ListItem>
+        </Tooltip>
+      ))}
+    </List>
+  ))}
+</Drawer>
 
       {/* Main Content */}
       <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>

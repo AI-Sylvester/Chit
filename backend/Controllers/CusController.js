@@ -13,7 +13,7 @@ exports.createCustomer = async (req, res) => {
 
 exports.getAllCustomers = async (req, res) => {
   try {
-    const customers = await Customer.find({}, 'cusId'); // Only return cusId
+    const customers = await Customer.find(); // fetch all fields
     res.json(customers);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch customers' });

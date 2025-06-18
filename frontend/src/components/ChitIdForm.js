@@ -78,7 +78,7 @@ function ChitIdForm() {
     <Box sx={{ maxWidth: 700, mx: 'auto', mt: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-  <Typography variant="h5">Chit ID List</Typography>
+  <Typography variant="h5">Chit Scheme List</Typography>
   <Button
     variant="contained"
     startIcon={<Add />}

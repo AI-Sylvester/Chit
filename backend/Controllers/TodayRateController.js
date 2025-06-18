@@ -1,4 +1,4 @@
-const TodayRate = require('../models/TodayRate');
+const TodayRate = require('../Models/TodayRate');
 
 // Get all rates (optionally latest only)
 exports.getTodayRates = async (req, res) => {

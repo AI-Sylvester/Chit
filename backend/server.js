@@ -7,7 +7,7 @@ const customerRoutes = require('./Routes/Cusroutes');
 const transactionRoutes = require('./Routes/Transroutes');
 const chitCloseRoutes = require('./Routes/Chitcloseroutes');
 const chitIdRoutes = require('./Routes/chitidroute');
-const chitRegisterRoutes = require('./Routes/chitRegisterRoutes');
+const chitRegisterRoutes = require('./Routes/ChitRegisterRoutes');
 dotenv.config();
 
 const app = express();

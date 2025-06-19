@@ -12,7 +12,7 @@ dotenv.config();
 
 const app = express();
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://sschit.netlify.app']
+  origin: ['http://localhost:3000', 'https://sschit.netlify.app','https://sschitcustomerportal.netlify.app']
 }));
 app.use(express.json());
 

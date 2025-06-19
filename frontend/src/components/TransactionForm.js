@@ -116,6 +116,7 @@ setTransaction(prev => ({
       receivedAmount: '',
       goldGram: '',
       payMode: '',
+      paidFor:'',
       status: 'Received',
     }));
   };
@@ -399,16 +400,17 @@ y += 5;
       />
     </Box>
     {/* Paid For */}
-   <Box sx={{ flex: 1 }}>
- <TextField
+ <Box sx={{ flex: 1 }}>
+  <TextField
   fullWidth
   label="Paid For"
   name="paidFor"
   value={transaction.paidFor}
-          onChange={handleChange}
+  onChange={handleChange}
+  InputLabelProps={{ shrink: true }}
   InputProps={{
     readOnly: true,
-    sx: { fontWeight: 600, bgcolor: '#e0e0e0' }
+    sx: { fontWeight: 600, bgcolor: '#e0e0e0' },
   }}
 />
 </Box>

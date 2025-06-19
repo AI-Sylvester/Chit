@@ -109,6 +109,14 @@ const [drawerOpen, setDrawerOpen] = useState(false); // default closed
               >
                 Today Rate
               </Button>
+                  {/* 🚪 Logout Button */}
+    <Button
+      sx={glossyButtonStyle('linear-gradient(to right, #000000, #434343)')}
+      onClick={() => navigate('/')}
+      startIcon={<LogoutIcon />}
+    >
+      Logout
+    </Button>
             </Stack>
           )}
         </Toolbar>
@@ -199,7 +207,25 @@ const [drawerOpen, setDrawerOpen] = useState(false); // default closed
         </Tooltip>
       ))}
     </List>
+    
   ))}
+  <Divider />
+<List>
+  <Tooltip title={!drawerOpen ? 'Logout' : ''} placement="right" arrow>
+    <ListItem button onClick={() => navigate('/')}>
+      <ListItemIcon sx={{ color: '#fff' }}>
+        <LogoutIcon />
+      </ListItemIcon>
+      {drawerOpen && (
+        <ListItemText
+          primary="Logout"
+          sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }}
+        />
+      )}
+    </ListItem>
+  </Tooltip>
+</List>
+
 </Drawer>
 
       {/* Main Content */}

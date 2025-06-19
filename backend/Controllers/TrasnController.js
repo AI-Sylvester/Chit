@@ -158,3 +158,13 @@ exports.checkTransactionExists = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+exports.getTransactionsByCusId = async (req, res) => {
+  try {
+    const { cusId } = req.params;
+    const transactions = await Transaction.find({ cusId });
+    res.json(transactions);
+  } catch (error) {
+    console.error('Error fetching transactions by cusId:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

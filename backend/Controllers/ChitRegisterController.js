@@ -169,3 +169,27 @@ exports.getByRegIdAllStatus = async (req, res) => {
     });
   }
 };
+exports.getChitsByCusId = async (req, res) => {
+  try {
+    const { cusId } = req.params;
+
+    if (!cusId) {
+      return res.status(400).json({ message: 'Customer ID (cusId) is required' });
+    }
+
+    // Find chit registers for the given customer ID
+    const chits = await ChitRegister.find({ cusId });
+
+    if (!chits.length) {
+      return res.status(404).json({ message: 'No chit registers found for this customer' });
+    }
+
+    res.json(chits);
+  } catch (err) {
+    console.error('Error fetching chit registers by cusId:', err);
+    res.status(500).json({
+      message: 'Internal server error',
+      error: err.message || err,
+    });
+  }
+};

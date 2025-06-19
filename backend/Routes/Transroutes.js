@@ -8,7 +8,7 @@ const transactionController = require('../Controllers/TrasnController');
 const {
   createTransaction,
   getTransactionsByChitId,
-  getNextEID,getTransactionsByRegId,settleTransactionsByRegId,getAllTransactions,checkTransactionExists
+  getNextEID,getTransactionsByRegId,settleTransactionsByRegId,getAllTransactions,checkTransactionExists,getTransactionsByCusId
 } = transactionController;
 
 // Routes
@@ -19,4 +19,5 @@ router.get('/by-regid/:regId', getTransactionsByRegId);
 router.put('/settle/:regId', settleTransactionsByRegId);
 router.get('/', getAllTransactions);
 router.get('/check-exists', checkTransactionExists);
+router.get('/by-cusid/:cusId', getTransactionsByCusId);
 module.exports = router;

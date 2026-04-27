@@ -1,23 +1,28 @@
 const express = require('express');
 const router = express.Router();
-
-// ✅ Import all controller functions, including getNextEID
 const transactionController = require('../Controllers/TrasnController');
+const { protect } = require('../middleware/authMiddleware');
 
-// ✅ Destructure if you want, or just use transactionController.method
 const {
   createTransaction,
   getTransactionsByChitId,
-  getNextEID,getTransactionsByRegId,settleTransactionsByRegId,getAllTransactions,checkTransactionExists,getTransactionsByCusId
+  getNextEID,
+  getTransactionsByRegId,
+  settleTransactionsByRegId,
+  getAllTransactions,
+  checkTransactionExists,
+  getTransactionsByCusId
 } = transactionController;
 
-// Routes
+router.use(protect);
+
 router.post('/', createTransaction);
-router.get('/next-eid', getNextEID); // ✅ Must come before :chitId route
+router.get('/next-eid', getNextEID);
 router.get('/:chitId', getTransactionsByChitId);
 router.get('/by-regid/:regId', getTransactionsByRegId);
 router.put('/settle/:regId', settleTransactionsByRegId);
 router.get('/', getAllTransactions);
 router.get('/check-exists', checkTransactionExists);
 router.get('/by-cusid/:cusId', getTransactionsByCusId);
+
 module.exports = router;

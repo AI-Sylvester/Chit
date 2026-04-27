@@ -1,33 +1,49 @@
 import React, { useState } from 'react';
 import {
   AppBar, Toolbar, IconButton, Typography, Drawer, List, ListItem,
-  ListItemText, ListItemIcon, Box, CssBaseline, Button, Stack, Divider,Tooltip, ListSubheader, useMediaQuery
+  ListItemText, ListItemIcon, Box, CssBaseline, Button, Stack, Divider, 
+  Tooltip, ListSubheader, useMediaQuery, Avatar, Menu, MenuItem, Fade, Paper
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import HomeIcon from '@mui/icons-material/Home';
-import PersonIcon from '@mui/icons-material/Person';
-import ReceiptIcon from '@mui/icons-material/Receipt';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import TodayIcon from '@mui/icons-material/Today';
-import HowToRegIcon from '@mui/icons-material/HowToReg';
-import LogoutIcon from '@mui/icons-material/Logout';
-import { useNavigate } from 'react-router-dom';
-import { useTheme  } from '@mui/material/styles';
-import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
-import DescriptionIcon from '@mui/icons-material/Description';
+import {
+  Menu as MenuIcon,
+  Home as HomeIcon,
+  Person as PersonIcon,
+  Receipt as ReceiptIcon,
+  ListAlt as ListAltIcon,
+  Assignment as AssignmentIcon,
+  Today as TodayIcon,
+  HowToReg as HowToRegIcon,
+  Logout as LogoutIcon,
+  PlaylistAddCheck as PlaylistAddCheckIcon,
+  Description as DescriptionIcon,
+  ExitToApp as ExitToAppIcon
+} from '@mui/icons-material';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useTheme, alpha } from '@mui/material/styles';
 
-const drawerWidth = 240;
-const appBarHeight = 64;
+const drawerWidth = 260;
 
 function Layout({ children }) {
-const [drawerOpen, setDrawerOpen] = useState(false); // default closed
+  const [drawerOpen, setDrawerOpen] = useState(true);
+  const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const userName = user.name || user.username || 'Admin';
 
   const toggleDrawer = () => setDrawerOpen(!drawerOpen);
+  
+  const handleProfileMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleProfileMenuClose = () => setAnchorEl(null);
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    navigate('/');
+  };
 
   const groupedMenu = {
     Master: [
@@ -35,203 +51,293 @@ const [drawerOpen, setDrawerOpen] = useState(false); // default closed
       { label: 'Chit ID Master', path: '/chitids', icon: <AssignmentIcon /> },
       { label: 'Today Rate Master', path: '/todayrate', icon: <TodayIcon /> },
     ],
-    Transaction: [
-   { label: 'Chit Registrtaion', path: '/chitregister', icon: <HowToRegIcon /> },
-      { label: 'Transaction', path: '/transaction', icon: <ReceiptIcon /> },
-        { label: 'Chit Close', path: '/chitregisterlist', icon: <LogoutIcon /> },
+    Operations: [
+      { label: 'Chit Registration', path: '/chitregister', icon: <HowToRegIcon /> },
+      { label: 'Transaction Entry', path: '/transaction', icon: <ReceiptIcon /> },
+      { label: 'Chit Closure', path: '/chitregisterlist', icon: <ExitToAppIcon /> },
     ],
-    Reports: [
-             { label: 'Chit Installments', path: '/chittable', icon: <ListAltIcon /> }, 
-             { label: 'Chit Register Report', path: '/chitview', icon: <PlaylistAddCheckIcon /> },
-      { label: 'Transaction Report', path: '/transview', icon: <DescriptionIcon /> },
+    Analysis: [
+      { label: 'Installments', path: '/chittable', icon: <ListAltIcon /> },
+      { label: 'Register Report', path: '/chitview', icon: <PlaylistAddCheckIcon /> },
+      { label: 'Transaction History', path: '/transview', icon: <DescriptionIcon /> },
     ],
   };
 
-  const glossyButtonStyle = (gradientColor) => ({
-    background: gradientColor,
-    color: '#fff',
-    fontWeight: 'bold',
-    borderRadius: 3,
-    px: 3,
-    py: 1.5,
-    boxShadow: '0 3px 6px rgba(0,0,0,0.3)',
-    textTransform: 'none',
-    transition: '0.3s',
-    '&:hover': {
-      boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-      transform: 'scale(1.03)',
-    },
-  });
+  const isActive = (path) => location.pathname === path;
 
-  return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-
-      {/* AppBar */}
-      <AppBar position="fixed" sx={{ backgroundColor: '#FFD700', color: 'black' }}>
-        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-          <Box display="flex" alignItems="center">
-            <IconButton color="inherit" onClick={toggleDrawer} edge="start" sx={{ mr: 2 }}>
-              <MenuIcon />
-            </IconButton>
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{
-                fontWeight: 'bold',
-                fontSize: '1.5rem',
-                letterSpacing: '0.5px',
-                color: 'black',
-              }}
-            >
-              Chit Management 
-            </Typography>
-          </Box>
-
-          {/* Glossy Action Buttons */}
-          {!isMobile && (
-            <Stack direction="row" spacing={1}>
-              <Button
-                sx={glossyButtonStyle('linear-gradient(to right, #1976d2, #42a5f5)')}
-                onClick={() => navigate('/transaction')}
-              >
-                Transaction
-              </Button>
-              <Button
-                sx={glossyButtonStyle('linear-gradient(to right, #d32f2f, #f44336)')}
-                onClick={() => navigate('/chitview')}
-              >
-                Chit Register
-              </Button>
-              <Button
-                sx={glossyButtonStyle('linear-gradient(to right, #616161, #9e9e9e)')}
-                onClick={() => navigate('/todayrate')}
-              >
-                Today Rate
-              </Button>
-                  {/* 🚪 Logout Button */}
-    <Button
-      sx={glossyButtonStyle('linear-gradient(to right, #000000, #434343)')}
-      onClick={() => navigate('/')}
-      startIcon={<LogoutIcon />}
-    >
-      Logout
-    </Button>
-            </Stack>
-          )}
-        </Toolbar>
-      </AppBar>
-
-      {/* Side Drawer */}
-
-
-<Drawer
-  variant="permanent"
-  open={drawerOpen}
-  sx={{
-    width: drawerOpen ? drawerWidth : 60,
-    flexShrink: 0,
-    whiteSpace: 'nowrap',
-    boxSizing: 'border-box',
-    '& .MuiDrawer-paper': {
-      width: drawerOpen ? drawerWidth : 60,
-      transition: theme.transitions.create('width', {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      overflowX: 'hidden',
-      backgroundColor: '#000',
-      color: '#fff',
-      top: `${appBarHeight}px`,
-      height: `calc(100% - ${appBarHeight}px)`,
-    },
-  }}
->
-   <Box sx={{ textAlign: 'center', py: 1 }}>
-    {drawerOpen && (
-      <Typography
-        variant="subtitle1"
+  const NavItem = ({ label, path, icon }) => (
+    <Tooltip title={!drawerOpen ? label : ''} placement="right" arrow>
+      <ListItem 
+        button 
+        onClick={() => navigate(path)}
         sx={{
-          fontWeight: 'bold',
-          fontSize: '1rem',
-          color: '#f5f5f5',
+          mx: 1.5,
+          my: 0.5,
+          width: 'calc(100% - 24px)',
+          borderRadius: 2,
+          backgroundColor: isActive(path) ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+          color: isActive(path) ? theme.palette.primary.main : theme.palette.text.secondary,
+          '&:hover': {
+            backgroundColor: alpha(theme.palette.primary.main, 0.05),
+            color: theme.palette.primary.main,
+            '& .MuiListItemIcon-root': {
+              color: theme.palette.primary.main,
+            }
+          },
         }}
       >
-        Chit Management
-      </Typography>
-    )}
-  </Box>
-
-  <Divider />
-
-  <List>
-    <Tooltip title={!drawerOpen ? 'Home' : ''} placement="right" arrow>
-      <ListItem button onClick={() => navigate('/home')}>
-        <ListItemIcon sx={{ color: '#fff' }}>
-          <HomeIcon />
+        <ListItemIcon sx={{ 
+          minWidth: 40, 
+          color: isActive(path) ? theme.palette.primary.main : theme.palette.text.secondary,
+          transition: 'color 0.2s'
+        }}>
+          {icon}
         </ListItemIcon>
         {drawerOpen && (
-          <ListItemText
-            primary="Home"
-            sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }}
+          <ListItemText 
+            primary={label} 
+            primaryTypographyProps={{ 
+              fontSize: '0.875rem', 
+              fontWeight: isActive(path) ? 600 : 500 
+            }} 
           />
         )}
       </ListItem>
     </Tooltip>
-  </List>
+  );
 
-  <Divider />
+  return (
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+      <CssBaseline />
+      
+      {/* AppBar */}
+      <AppBar 
+        position="fixed" 
+        elevation={0}
+        sx={{ 
+          zIndex: theme.zIndex.drawer + 1,
+          backgroundColor: alpha(theme.palette.background.paper, 0.8),
+          backdropFilter: 'blur(8px)',
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          color: theme.palette.text.primary,
+          width: { md: `calc(100% - ${drawerOpen ? drawerWidth : 80}px)` },
+          ml: { md: `${drawerOpen ? drawerWidth : 80}px` },
+          transition: theme.transitions.create(['width', 'margin'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
+        }}
+      >
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              onClick={toggleDrawer}
+              edge="start"
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700 }}>
+              {location.pathname === '/home' ? 'Dashboard' : 'Management Console'}
+            </Typography>
+          </Box>
 
-  {Object.entries(groupedMenu).map(([section, items]) => (
-    <List
-      key={section}
-      subheader={
-        drawerOpen && (
-          <ListSubheader component="div" sx={{ background: '#1a1a1a', color: '#aaa' }}>
-            {section}
-          </ListSubheader>
-        )
-      }
-    >
-      {items.map(({ label, path, icon }) => (
-        <Tooltip title={!drawerOpen ? label : ''} placement="right" arrow key={label}>
-          <ListItem button onClick={() => navigate(path)}>
-            <ListItemIcon sx={{ color: '#fff' }}>{icon}</ListItemIcon>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' }, color: 'text.secondary', fontWeight: 500 }}>
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+            </Typography>
+            <Box 
+              onClick={handleProfileMenuOpen}
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1.5, 
+                cursor: 'pointer',
+                p: 0.5,
+                pr: 1.5,
+                borderRadius: 10,
+                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.05) }
+              }}
+            >
+              <Avatar 
+                sx={{ 
+                  width: 36, 
+                  height: 36, 
+                  bgcolor: theme.palette.primary.main,
+                  fontSize: '0.875rem',
+                  fontWeight: 700
+                }}
+              >
+                {userName.charAt(0).toUpperCase()}
+              </Avatar>
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                <Typography variant="subtitle2" sx={{ lineHeight: 1 }}>{userName}</Typography>
+                <Typography variant="caption" color="text.secondary">Administrator</Typography>
+              </Box>
+            </Box>
+          </Stack>
+        </Toolbar>
+      </AppBar>
+
+      {/* Sidebar Drawer */}
+      <Drawer
+        variant={isMobile ? 'temporary' : 'permanent'}
+        open={drawerOpen}
+        onClose={toggleDrawer}
+        sx={{
+          width: drawerOpen ? drawerWidth : 80,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: drawerOpen ? drawerWidth : 80,
+            boxSizing: 'border-box',
+            borderRight: `1px solid ${theme.palette.divider}`,
+            transition: theme.transitions.create('width', {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
+            overflowX: 'hidden',
+            bgcolor: 'background.paper',
+          },
+        }}
+      >
+        <Box sx={{ 
+          height: 64, 
+          display: 'flex', 
+          alignItems: 'center', 
+          px: 3,
+          gap: 2,
+          color: theme.palette.primary.main
+        }}>
+          <HowToRegIcon sx={{ fontSize: 32 }} />
+          {drawerOpen && (
+            <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: '-0.5px' }}>
+              CHIT<span style={{ color: theme.palette.text.primary }}>SYS</span>
+            </Typography>
+          )}
+        </Box>
+
+        <Divider sx={{ mb: 2 }} />
+
+        <List sx={{ px: 0 }}>
+          <NavItem label="Home Dashboard" path="/home" icon={<HomeIcon />} />
+        </List>
+
+        {Object.entries(groupedMenu).map(([section, items]) => (
+          <Box key={section} sx={{ mt: 2 }}>
             {drawerOpen && (
-              <ListItemText
-                primary={label}
-                sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }}
-              />
+              <ListSubheader 
+                sx={{ 
+                  bgcolor: 'transparent', 
+                  lineHeight: '24px', 
+                  fontSize: '0.7rem', 
+                  fontWeight: 700, 
+                  textTransform: 'uppercase', 
+                  color: 'text.secondary',
+                  letterSpacing: '1px',
+                  mb: 1,
+                  px: 3
+                }}
+              >
+                {section}
+              </ListSubheader>
             )}
+            <List sx={{ px: 0 }}>
+              {items.map((item) => (
+                <NavItem key={item.label} {...item} />
+              ))}
+            </List>
+          </Box>
+        ))}
+
+        <Box sx={{ mt: 'auto', mb: 2, px: 2 }}>
+          {drawerOpen && (
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: 2, 
+                bgcolor: alpha(theme.palette.primary.main, 0.05),
+                borderRadius: 3,
+                textAlign: 'center'
+              }}
+            >
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Need Assistance?
+              </Typography>
+              <Button variant="outlined" size="small" fullWidth>
+                Support
+              </Button>
+            </Paper>
+          )}
+          <ListItem 
+            button 
+            onClick={handleLogout}
+            sx={{
+              mt: 2,
+              mx: 1.5,
+              width: 'calc(100% - 24px)',
+              borderRadius: 2,
+              color: 'error.main',
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.error.main, 0.05),
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+              <LogoutIcon />
+            </ListItemIcon>
+            {drawerOpen && <ListItemText primary="Sign Out" primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: 600 }} />}
           </ListItem>
-        </Tooltip>
-      ))}
-    </List>
-    
-  ))}
-  <Divider />
-<List>
-  <Tooltip title={!drawerOpen ? 'Logout' : ''} placement="right" arrow>
-    <ListItem button onClick={() => navigate('/')}>
-      <ListItemIcon sx={{ color: '#fff' }}>
-        <LogoutIcon />
-      </ListItemIcon>
-      {drawerOpen && (
-        <ListItemText
-          primary="Logout"
-          sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }}
-        />
-      )}
-    </ListItem>
-  </Tooltip>
-</List>
+        </Box>
+      </Drawer>
 
-</Drawer>
-
-      {/* Main Content */}
-      <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+      {/* Main Content Area */}
+      <Box 
+        component="main" 
+        sx={{ 
+          flexGrow: 1, 
+          p: { xs: 2, sm: 3 }, 
+          width: { md: `calc(100% - ${drawerOpen ? drawerWidth : 80}px)` },
+          mt: 8,
+          transition: theme.transitions.create(['width', 'margin'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
+        }}
+      >
         {children}
       </Box>
+
+      {/* Profile Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleProfileMenuClose}
+        TransitionComponent={Fade}
+        PaperProps={{
+          sx: {
+            mt: 1.5,
+            minWidth: 200,
+            borderRadius: 3,
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+            border: `1px solid ${theme.palette.divider}`
+          }
+        }}
+      >
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography variant="subtitle2">{userName}</Typography>
+          <Typography variant="caption" color="text.secondary">{user.username || 'admin'}</Typography>
+        </Box>
+        <Divider />
+        <MenuItem onClick={handleProfileMenuClose}>Profile Settings</MenuItem>
+        <MenuItem onClick={handleProfileMenuClose}>Security</MenuItem>
+        <Divider />
+        <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+          <ListItemIcon><LogoutIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
+          Logout
+        </MenuItem>
+      </Menu>
     </Box>
   );
 }

@@ -13,31 +13,34 @@ import ChitRegisterView from './components/ChitView';
 import TransactionTable from './components/TransactionView';
 import ChitRegisterTable from './components/ChitregisterTable';
 import CustomerTable from './components/CustomerTable';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage />} />
-        {/* Routes under layout */}
+        {/* Routes under layout and protected */}
         <Route
           path="/*"
           element={
-            <Layout>
-              <Routes>
-                <Route path="home" element={<Homepage />} />
-                <Route path="customer" element={<CustomerForm />} />
-                <Route path="transaction" element={<TransactionForm />} />
-                <Route path="chitview" element={<ChitRegisterView />} />
-                <Route path="chitids" element={<ChitIdForm />} />
-                <Route path="todayrate" element={<TodayRateManager />} />
-                <Route path="chitregister" element={<ChitRegisterForm />} />
+            <ProtectedRoute>
+              <Layout>
+                <Routes>
+                  <Route path="home" element={<Homepage />} />
+                  <Route path="customer" element={<CustomerForm />} />
+                  <Route path="transaction" element={<TransactionForm />} />
+                  <Route path="chitview" element={<ChitRegisterView />} />
+                  <Route path="chitids" element={<ChitIdForm />} />
+                  <Route path="todayrate" element={<TodayRateManager />} />
+                  <Route path="chitregister" element={<ChitRegisterForm />} />
                   <Route path="chitregisterlist" element={<ChitRegisterList />} /> 
                   <Route path="transview" element={<TransactionTable />} /> 
-                   <Route path="chittable" element={<ChitRegisterTable />} /> 
-                   <Route path="custable" element={<CustomerTable />} /> 
-                                 </Routes>
-            </Layout>
+                  <Route path="chittable" element={<ChitRegisterTable />} /> 
+                  <Route path="custable" element={<CustomerTable />} /> 
+                </Routes>
+              </Layout>
+            </ProtectedRoute>
           }
         />
       </Routes>

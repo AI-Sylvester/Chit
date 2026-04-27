@@ -1,82 +1,109 @@
+const jwt = require('jsonwebtoken');
 const Customer = require('../Models/Customer');
+const asyncHandler = require('../utils/asyncHandler');
+const AppError = require('../utils/AppError');
 
-exports.getCustomerById = async (req, res) => {
-  const customer = await Customer.findOne({ cusId: req.params.cusId });
-  res.json(customer);
+const signToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback-secret', {
+    expiresIn: process.env.JWT_EXPIRES_IN || '90d'
+  });
 };
 
-exports.createCustomer = async (req, res) => {
-  const newCustomer = new Customer(req.body);
-  await newCustomer.save();
-  res.status(201).json(newCustomer);
-};
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
 
-exports.getAllCustomers = async (req, res) => {
-  try {
-    const customers = await Customer.find(); // fetch all fields
-    res.json(customers);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch customers' });
-  }
-};
-exports.getNextCusId = async (req, res) => {
-  try {
-    const lastCustomer = await Customer.findOne().sort({ cusId: -1 }).select('cusId').lean();
-    const prefix = 'CS';
+  // Remove password from output
+  user.password = undefined;
 
-    let nextCusId = 'CS00000001';
-    if (lastCustomer && lastCustomer.cusId) {
-      const lastNumber = parseInt(lastCustomer.cusId.slice(2), 10);
-      const nextNumber = lastNumber + 1;
-      nextCusId = prefix + nextNumber.toString().padStart(8, '0');
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user
     }
-
-    res.json({ nextCusId });
-  } catch (error) {
-    console.error('Error generating next customer ID:', error);
-    res.status(500).json({ error: 'Failed to generate customer ID' });
-  }
+  });
 };
-exports.loginCustomer = async (req, res) => {
+
+exports.getCustomerById = asyncHandler(async (req, res, next) => {
+  const customer = await Customer.findOne({ cusId: req.params.cusId });
+  if (!customer) {
+    return next(new AppError('No customer found with that ID', 404));
+  }
+  res.status(200).json({
+    status: 'success',
+    data: { customer }
+  });
+});
+
+exports.createCustomer = asyncHandler(async (req, res, next) => {
+  const newCustomer = await Customer.create(req.body);
+  res.status(201).json({
+    status: 'success',
+    data: { customer: newCustomer }
+  });
+});
+
+exports.getAllCustomers = asyncHandler(async (req, res, next) => {
+  const customers = await Customer.find();
+  res.status(200).json({
+    status: 'success',
+    results: customers.length,
+    data: { customers }
+  });
+});
+
+exports.getNextCusId = asyncHandler(async (req, res, next) => {
+  const lastCustomer = await Customer.findOne().sort({ cusId: -1 }).select('cusId').lean();
+  const prefix = 'CS';
+
+  let nextCusId = 'CS00000001';
+  if (lastCustomer && lastCustomer.cusId) {
+    const lastNumber = parseInt(lastCustomer.cusId.slice(2), 10);
+    const nextNumber = lastNumber + 1;
+    nextCusId = prefix + nextNumber.toString().padStart(8, '0');
+  }
+
+  res.status(200).json({
+    status: 'success',
+    nextCusId
+  });
+});
+
+exports.loginCustomer = asyncHandler(async (req, res, next) => {
   const { cusId, password } = req.body;
 
-  try {
-    const customer = await Customer.findOne({ cusId, password });
-
-    if (!customer) {
-      return res.status(401).json({ error: 'Invalid customer ID or password' });
-    }
-
-    if (!customer.active) {
-      return res.status(403).json({ error: 'Account is inactive' });
-    }
-
-    res.status(200).json({
-      message: 'Login successful',
-      user: {
-        cusId: customer.cusId,
-        name: customer.name,
-        username: customer.username,
-      },
-    });
-  } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+  // 1) Check if cusId and password exist
+  if (!cusId || !password) {
+    return next(new AppError('Please provide customer ID and password!', 400));
   }
-};
-exports.getCusCustomer = async (req, res) => {
-  try {
-    const customer = await Customer.findOne({ cusId: req.params.cusId }).select(
-      'cusId name grade number PID addressLine1 addressLine2 city state mobile1 mobile2 active'
-    );
 
-    if (!customer) {
-      return res.status(404).json({ error: 'Customer not found' });
-    }
+  // 2) Check if user exists && password is correct
+  const customer = await Customer.findOne({ cusId }).select('+password');
 
-    res.json(customer);
-  } catch (error) {
-    console.error('Error fetching customer:', error);
-    res.status(500).json({ error: 'Failed to fetch customer details' });
+  if (!customer || !(await customer.correctPassword(password, customer.password))) {
+    return next(new AppError('Incorrect customer ID or password', 401));
   }
-};
+
+  // 3) Check if user is active
+  if (!customer.active) {
+    return next(new AppError('This account is inactive', 403));
+  }
+
+  // 4) If everything ok, send token to client
+  createSendToken(customer, 200, res);
+});
+
+exports.getCusCustomer = asyncHandler(async (req, res, next) => {
+  const customer = await Customer.findOne({ cusId: req.params.cusId }).select(
+    'cusId name grade number PID addressLine1 addressLine2 city state mobile1 mobile2 active'
+  );
+
+  if (!customer) {
+    return next(new AppError('No customer found with that ID', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: { customer }
+  });
+});

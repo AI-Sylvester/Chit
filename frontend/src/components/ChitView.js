@@ -129,6 +129,8 @@ function ChitRegisterView() {
                   <DetailRow label="Name" value={chitDetails.name} />
                   <DetailRow label="Chit ID" value={chitDetails.chitId} />
                  <DetailRow label="Status" value={chitDetails.status} />
+                 <DetailRow label="Scheme Name" value={chitDetails.schemeName} />
+<DetailRow label="Period" value={chitDetails.period} />
 <DetailRow label="Started On" value={formatDate(chitDetails.startedOn)} />
 {chitDetails.maturityDate && (
   <DetailRow label="Maturity Date" value={formatDate(chitDetails.maturityDate)} />

@@ -71,17 +71,19 @@ exports.getNextCusId = asyncHandler(async (req, res, next) => {
 
 exports.loginCustomer = asyncHandler(async (req, res, next) => {
   const { cusId, password } = req.body;
-
-  // 1) Check if cusId and password exist
-  if (!cusId || !password) {
-    return next(new AppError('Please provide customer ID and password!', 400));
+  const identifier = cusId || req.body.username;
+  if (!identifier || !password) {
+    return next(new AppError('Please provide login ID and password!', 400));
   }
 
   // 2) Check if user exists && password is correct
-  const customer = await Customer.findOne({ cusId }).select('+password');
+  // Search by either cusId or username
+  const customer = await Customer.findOne({ 
+    $or: [{ cusId: identifier }, { username: identifier }] 
+  }).select('+password');
 
   if (!customer || !(await customer.correctPassword(password, customer.password))) {
-    return next(new AppError('Incorrect customer ID or password', 401));
+    return next(new AppError('Incorrect credentials', 401));
   }
 
   // 3) Check if user is active

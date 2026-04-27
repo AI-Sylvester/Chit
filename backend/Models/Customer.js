@@ -15,6 +15,7 @@ const customerSchema = new mongoose.Schema({
   mobile2: String,
   username: String,
   password: { type: String, required: true },
+  role: { type: String, enum: ['admin', 'customer'], default: 'customer' },
   active: { type: Boolean, default: true }
 });
 

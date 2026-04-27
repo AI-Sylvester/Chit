@@ -11,20 +11,25 @@ import {
   InputAdornment,
   IconButton,
   Container,
-  Stack
+  Stack,
+  Tabs,
+  Tab
 } from '@mui/material';
 import {
   Person as PersonIcon,
   Lock as LockIcon,
   Visibility,
   VisibilityOff,
-  Diamond as DiamondIcon
+  Diamond as DiamondIcon,
+  AdminPanelSettings as AdminIcon,
+  Group as CustomerIcon
 } from '@mui/icons-material';
 import api from '../services/api';
 import { useTheme, alpha } from '@mui/material/styles';
 
 function LoginPage() {
-  const [cusId, setCusId] = useState('');
+  const [loginType, setLoginType] = useState(0); // 0 for Admin, 1 for Customer
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -44,7 +49,11 @@ function LoginPage() {
     setError('');
 
     try {
-      const response = await api.post('/customers/login', { cusId, password });
+      const payload = loginType === 0 
+        ? { username: identifier, password } 
+        : { cusId: identifier, password };
+
+      const response = await api.post('/customers/login', payload);
       const { token, data } = response.data;
       
       localStorage.setItem('token', token);
@@ -52,7 +61,7 @@ function LoginPage() {
       
       navigate('/home');
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid customer ID or password');
+      setError(err.response?.data?.message || 'Invalid credentials');
     } finally {
       setIsLoading(false);
     }
@@ -76,10 +85,6 @@ function LoginPage() {
         overflow: 'hidden'
       }}
     >
-      {/* Decorative Circles */}
-      <Box sx={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', bgcolor: alpha(theme.palette.primary.main, 0.03), top: -100, right: -100, zIndex: 0 }} />
-      <Box sx={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', bgcolor: alpha(theme.palette.secondary.main, 0.03), bottom: -50, left: -50, zIndex: 0 }} />
-
       <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
         <Paper 
           elevation={0}
@@ -113,11 +118,31 @@ function LoginPage() {
           </Box>
 
           <Typography variant="h4" sx={{ fontWeight: 800, mb: 1, letterSpacing: '-1px' }}>
-            Welcome Back
+            CHITSYS Portal
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-            Enter your credentials to access the management portal
+            Please select your account type to continue
           </Typography>
+
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
+            <Tabs 
+              value={loginType} 
+              onChange={(e, val) => {
+                setLoginType(val);
+                setIdentifier('');
+                setPassword('');
+                setError('');
+              }} 
+              variant="fullWidth"
+              sx={{
+                '& .MuiTab-root': { py: 2, fontWeight: 700, fontSize: '0.9rem' },
+                '& .Mui-selected': { color: theme.palette.primary.main }
+              }}
+            >
+              <Tab icon={<AdminIcon />} iconPosition="start" label="Admin Login" />
+              <Tab icon={<CustomerIcon />} iconPosition="start" label="Customer Login" />
+            </Tabs>
+          </Box>
 
           {error && (
             <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
@@ -128,10 +153,10 @@ function LoginPage() {
           <Stack spacing={3}>
             <TextField
               fullWidth
-              label="Customer ID"
-              placeholder="e.g., CS00000001"
-              value={cusId}
-              onChange={(e) => setCusId(e.target.value)}
+              label={loginType === 0 ? "Admin Username" : "Customer ID"}
+              placeholder={loginType === 0 ? "e.g., admin" : "e.g., CS00000001"}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               onKeyDown={handleKeyDown}
               InputProps={{
                 startAdornment: (
@@ -140,7 +165,6 @@ function LoginPage() {
                   </InputAdornment>
                 ),
               }}
-              sx={{ '& .MuiOutlinedInput-root': { py: 0.5 } }}
             />
 
             <TextField
@@ -164,7 +188,6 @@ function LoginPage() {
                   </InputAdornment>
                 ),
               }}
-              sx={{ '& .MuiOutlinedInput-root': { py: 0.5 } }}
             />
 
             <Button
@@ -172,23 +195,23 @@ function LoginPage() {
               fullWidth
               size="large"
               onClick={handleLogin}
-              disabled={isLoading || !cusId || !password}
+              disabled={isLoading || !identifier || !password}
               sx={{ 
                 py: 1.8, 
                 fontSize: '1rem',
                 boxShadow: '0 10px 20px -5px rgba(245, 158, 11, 0.4)'
               }}
             >
-              {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
+              {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Log In Now'}
             </Button>
           </Stack>
 
           <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center', gap: 1 }}>
             <Typography variant="body2" color="text.secondary">
-              Forgot your password?
+              Need technical support?
             </Typography>
             <Typography variant="body2" color="primary" sx={{ fontWeight: 600, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
-              Contact Admin
+              Contact Us
             </Typography>
           </Box>
         </Paper>

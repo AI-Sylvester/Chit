@@ -27,6 +27,7 @@ function Homepage() {
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const userName = user.name || user.username || 'Admin';
+  const isAdmin = user.role === 'admin';
 
   useEffect(() => {
     // Fetch dashboard stats
@@ -131,74 +132,89 @@ function Homepage() {
         </Typography>
       </Box>
 
-      <Grid container spacing={3} sx={{ mb: 6 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard 
-            title="Total Customers" 
-            value={stats.customers} 
-            icon={<PeopleIcon />} 
-            color={theme.palette.primary.main}
-            trend="+12%" 
-          />
+      {isAdmin && (
+        <Grid container spacing={3} sx={{ mb: 6 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard 
+              title="Total Customers" 
+              value={stats.customers} 
+              icon={<PeopleIcon />} 
+              color={theme.palette.primary.main}
+              trend="+12%" 
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard 
+              title="Active Chits" 
+              value={stats.chits} 
+              icon={<BankIcon />} 
+              color={theme.palette.info.main}
+              trend="+5" 
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard 
+              title="Gold Rate (Today)" 
+              value={`₹${stats.todayRate}`} 
+              icon={<TrendingUpIcon />} 
+              color={theme.palette.warning.main} 
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard 
+              title="Today's Collections" 
+              value="₹45,200" 
+              icon={<EventIcon />} 
+              color={theme.palette.success.main}
+              trend="New" 
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard 
-            title="Active Chits" 
-            value={stats.chits} 
-            icon={<BankIcon />} 
-            color={theme.palette.info.main}
-            trend="+5" 
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard 
-            title="Gold Rate (Today)" 
-            value={`₹${stats.todayRate}`} 
-            icon={<TrendingUpIcon />} 
-            color={theme.palette.warning.main} 
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard 
-            title="Today's Collections" 
-            value="₹45,200" 
-            icon={<EventIcon />} 
-            color={theme.palette.success.main}
-            trend="New" 
-          />
-        </Grid>
-      </Grid>
+      )}
 
-      <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>Quick Actions</Typography>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <QuickAction 
-            title="New Transaction" 
-            description="Record a gold chit installment payment from a customer."
-            icon={<AddIcon />}
-            path="/transaction"
-            color={theme.palette.primary.main}
-          />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <QuickAction 
-            title="Register Customer" 
-            description="Add a new member to the system and assign categories."
-            icon={<PeopleIcon />}
-            path="/customer"
-            color={theme.palette.secondary.main}
-          />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <QuickAction 
-            title="Update Gold Rate" 
-            description="Set the daily gold gram rate for transactions."
-            icon={<TrendingUpIcon />}
-            path="/todayrate"
-            color={theme.palette.warning.main}
-          />
-        </Grid>
-      </Grid>
+      {!isAdmin && (
+        <Box sx={{ mb: 6, p: 4, borderRadius: 4, bgcolor: alpha(theme.palette.primary.main, 0.05), border: '1px dashed', borderColor: 'primary.main' }}>
+          <Typography variant="h6" color="primary.dark" sx={{ fontWeight: 700, mb: 1 }}>Welcome to your Customer Portal</Typography>
+          <Typography variant="body1" color="text.secondary">
+            You can track your gold chit installments and view your transaction history using the navigation menu on the left.
+          </Typography>
+        </Box>
+      )}
+
+      {isAdmin && (
+        <>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>Quick Actions</Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <QuickAction 
+                title="New Transaction" 
+                description="Record a gold chit installment payment from a customer."
+                icon={<AddIcon />}
+                path="/transaction"
+                color={theme.palette.primary.main}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <QuickAction 
+                title="Register Customer" 
+                description="Add a new member to the system and assign categories."
+                icon={<PeopleIcon />}
+                path="/customer"
+                color={theme.palette.secondary.main}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <QuickAction 
+                title="Update Gold Rate" 
+                description="Set the daily gold gram rate for transactions."
+                icon={<TrendingUpIcon />}
+                path="/todayrate"
+                color={theme.palette.warning.main}
+              />
+            </Grid>
+          </Grid>
+        </>
+      )}
 
       <Box sx={{ mt: 8 }}>
         <Paper 

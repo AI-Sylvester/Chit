@@ -33,6 +33,7 @@ function Layout({ children }) {
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const userName = user.name || user.username || 'Admin';
+  const role = user.role || 'customer';
 
   const toggleDrawer = () => setDrawerOpen(!drawerOpen);
   
@@ -45,7 +46,7 @@ function Layout({ children }) {
     navigate('/');
   };
 
-  const groupedMenu = {
+  const adminMenu = {
     Master: [
       { label: 'Customer Master', path: '/customer', icon: <PersonIcon /> },
       { label: 'Chit ID Master', path: '/chitids', icon: <AssignmentIcon /> },
@@ -62,6 +63,15 @@ function Layout({ children }) {
       { label: 'Transaction History', path: '/transview', icon: <DescriptionIcon /> },
     ],
   };
+
+  const customerMenu = {
+    'My Account': [
+      { label: 'My Installments', path: '/chittable', icon: <ListAltIcon /> },
+      { label: 'Transaction History', path: '/transview', icon: <DescriptionIcon /> },
+    ],
+  };
+
+  const groupedMenu = role === 'admin' ? adminMenu : customerMenu;
 
   const isActive = (path) => location.pathname === path;
 

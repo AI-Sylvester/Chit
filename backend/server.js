@@ -43,7 +43,7 @@ app.use('/api/todayrates', todayRateRoutes);
 app.use('/api/chitregisters', chitRegisterRoutes);
 
 // Handle undefined routes
-app.all('*', (req, res, next) => {
+app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
